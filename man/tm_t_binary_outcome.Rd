@@ -21,6 +21,10 @@ tm_t_binary_outcome(
   default_responses = c("CR", "PR", "Y", "Complete Response (CR)",
     "Partial Response (PR)", "M"),
   rsp_table = FALSE,
+  control = list(global = list(method = ifelse(rsp_table, "clopper-pearson", "waldcc"),
+    conf_level = 0.95), unstrat = list(method_ci = ifelse(rsp_table, "wald", "waldcc"),
+    method_test = "schouten", odds = TRUE), strat = list(method_ci = "cmh", method_test =
+    "cmh")),
   add_total = FALSE,
   total_label = default_total_label(),
   na_level = default_na_str(),
@@ -42,7 +46,7 @@ It defines the grouping variable(s) in the results table.
 If there are two elements selected for \code{arm_var},
 second variable will be nested under the first variable.}
 
-\item{arm_ref_comp}{optional, (\code{list})\cr If specified it must be a named list with each element corresponding to
+\item{arm_ref_comp}{(\code{list}) optional,\cr if specified it must be a named list with each element corresponding to
 an arm variable in \code{ADSL} and the element must be another list (possibly
 with delayed \code{\link[teal.transform:variable_choices]{teal.transform::variable_choices()}} or delayed \code{\link[teal.transform:value_choices]{teal.transform::value_choices()}}
 with the elements named \code{ref} and \code{comp} that the defined the default
@@ -69,6 +73,18 @@ values and \code{levels} of default level choices.}
 
 \item{rsp_table}{(\code{logical})\cr whether the initial set-up of the module should match \code{RSPT01}. Defaults to \code{FALSE}.}
 
+\item{control}{(named \code{list})\cr named list containing 3 named lists as follows:
+\itemize{
+\item \code{global}: a list of settings for overall analysis with 2 named elements \code{method} and \code{conf_level}.
+\item \code{unstrat}: a list of settings for unstratified analysis with 3 named elements \code{method_ci} and \code{method_test}, and
+\code{odds}. See \code{\link[tern:prop_diff]{tern::estimate_proportion_diff()}}, \code{\link[tern:prop_diff_test]{tern::test_proportion_diff()}}, and
+\code{\link[tern:odds_ratio]{tern::estimate_odds_ratio()}}, respectively, for options and details on how these settings are implemented in the
+analysis.
+\item \code{strat}: a list of settings for stratified analysis with elements \code{method_ci} and \code{method_test}. See
+\code{\link[tern:prop_diff]{tern::estimate_proportion_diff()}} and \code{\link[tern:prop_diff_test]{tern::test_proportion_diff()}}, respectively, for options and details on
+how these settings are implemented in the analysis.
+}}
+
 \item{add_total}{(\code{logical})\cr whether to include column with total number of patients.}
 
 \item{total_label}{(\code{string})\cr string to display as total column/row label if column/row is
@@ -79,13 +95,13 @@ apply in all modules, run \code{set_default_total_label("new_default")}.}
 in character or factor variables in the data. Defaults to \code{"<Missing>"}. To set a
 default \code{na_level} to apply in all modules, run \code{set_default_na_str("new_default")}.}
 
-\item{pre_output}{optional, (\code{shiny.tag})\cr with text placed before the output to put the output into context.
+\item{pre_output}{(\code{shiny.tag}) optional,\cr with text placed before the output to put the output into context.
 For example a title.}
 
-\item{post_output}{optional, (\code{shiny.tag})\cr with text placed after the output to put the output into context.
+\item{post_output}{(\code{shiny.tag}) optional,\cr with text placed after the output to put the output into context.
 For example the \code{\link[shiny:helpText]{shiny::helpText()}} elements are useful.}
 
-\item{basic_table_args}{optional, (\code{basic_table_args})\cr object created by \code{\link[teal.widgets:basic_table_args]{teal.widgets::basic_table_args()}}
+\item{basic_table_args}{(\code{basic_table_args}) optional\cr object created by \code{\link[teal.widgets:basic_table_args]{teal.widgets::basic_table_args()}}
 with settings for the module table. The argument is merged with option \code{teal.basic_table_args} and with default
 module arguments (hard coded in the module body).
 For more details, see the vignette: \code{vignette("custom-basic-table-arguments", package = "teal.widgets")}.}
@@ -108,7 +124,6 @@ or re-categorize response categories and arrange the display order. If response 
 }
 \examples{
 library(dplyr)
-library(formatters)
 
 ADSL <- tmc_ex_adsl
 ADRS <- tmc_ex_adrs \%>\%
@@ -151,7 +166,7 @@ app <- init(
       arm_ref_comp = arm_ref_comp,
       strata_var = choices_selected(
         choices = variable_choices(ADRS, c("SEX", "BMRKR2", "RACE")),
-        select = "RACE"
+        selected = "RACE"
       ),
       default_responses = list(
         BESRSPI = list(

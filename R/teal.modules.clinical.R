@@ -3,9 +3,9 @@
 #' Provides teal modules for the standard clinical trials outputs.
 #' The teal modules add an encoding panel to interactively change the encodings within teal.
 #'
-#' @name teal.modules.clinical
 "_PACKAGE"
 
+#' @import shiny
 #' @import teal
 #' @import teal.transform
 #' @import tern

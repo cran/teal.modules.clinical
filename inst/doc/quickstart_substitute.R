@@ -1,9 +1,5 @@
-## ----error = TRUE-------------------------------------------------------------
-non_evaluated_expression <- substitute(expr = a + b)
-non_evaluated_expression
-eval(non_evaluated_expression)
-
 ## -----------------------------------------------------------------------------
+non_evaluated_expression <- substitute(expr = a + b)
 a <- 1
 b <- 5
 eval(non_evaluated_expression)
@@ -31,30 +27,6 @@ non_evaluated_expression <- substitute(
 )
 non_evaluated_expression
 eval(non_evaluated_expression)
-
-## ----error = TRUE-------------------------------------------------------------
-# Error expected:
-plot_expr <- substitute(
-  expr = plot(y ~ x, data = iris, main = text),
-  env = list(
-    x = Sepal.Length,
-    y = Sepal.Width,
-    text = "Iris, again ..."
-  )
-)
-
-## ----error = TRUE-------------------------------------------------------------
-# Error expected:
-plot_expr <- substitute(
-  expr = plot(y ~ x, data = iris, main = text),
-  env = list(
-    x = "Sepal.Length",
-    y = "Sepal.Width",
-    text = "Iris, again ..."
-  )
-)
-plot_expr
-eval(plot_expr)
 
 ## -----------------------------------------------------------------------------
 plot_expr <- substitute(
@@ -98,10 +70,10 @@ plot_expr
 eval(plot_expr)
 
 ## ----message=FALSE------------------------------------------------------------
-library(rtables)
-library(tern)
+library(teal.modules.clinical)
+library(dplyr)
 
-adlb <- teal.modules.clinical::tmc_ex_adlb
+adlb <- tmc_ex_adlb
 adlb_f <- adlb %>%
   filter(
     PARAM == "Alanine Aminotransferase Measurement" &
@@ -322,7 +294,7 @@ rtables_expr <- function(df,
 }
 
 ## -----------------------------------------------------------------------------
-adlb <- teal.modules.clinical::tmc_ex_adlb
+adlb <- tmc_ex_adlb
 result <- rtables_expr(
   df = adlb, paramcd = "CRP", arm = "ARM", visit = "AVISIT",
   .stats = c("n", "mean_sd")

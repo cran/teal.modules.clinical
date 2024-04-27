@@ -11,7 +11,7 @@
 
 <meta name="author" content="NEST CoreDev Team" />
 
-<meta name="date" content="2024-02-22" />
+<meta name="date" content="2024-04-26" />
 
 <title>Getting Started with {teal.modules.clinical}</title>
 
@@ -353,7 +353,7 @@ display: none;
 <h1 class="title toc-ignore">Getting Started with
 {teal.modules.clinical}</h1>
 <h4 class="author">NEST CoreDev Team</h4>
-<h4 class="date">2024-02-22</h4>
+<h4 class="date">2024-04-26</h4>
 
 </div>
 
@@ -412,8 +412,8 @@ library(nestcolor)
 ADSL &lt;- tmc_ex_adsl
 ADAE &lt;- tmc_ex_adae
 
-app &lt;- teal::init(
-  data = teal.data::cdisc_data(
+app &lt;- init(
+  data = cdisc_data(
     ADSL = ADSL,
     ADAE = ADAE,
     code = &quot;
@@ -442,7 +442,7 @@ app &lt;- teal::init(
   )
 )
 
-if (interactive()) shiny::shinyApp(app$ui, app$server)</code></pre>
+if (interactive()) shinyApp(app$ui, app$server)</code></pre>
 <p>Consider consulting the documentation and examples of each module
 (e.g. <code>?tm_g_barchart_simple</code>). In many, you can also find
 useful links to the <a href="https://insightsengineering.github.io/tlg-catalog/stable/">TLG
@@ -475,8 +475,8 @@ to apply the standardized NEST color palette to all module plots.</p>
 <code>ADSL</code> and <code>ADAE</code> - and the <code>modules</code>
 argument indicates the modules included in the application. Here, we
 include only one module: <code>tm_g_barchart_simple()</code>.</p>
-<pre class="r"><code>app &lt;- teal::init(
-  data = teal.data::cdisc_data(
+<pre class="r"><code>app &lt;- init(
+  data = cdisc_data(
     ADSL = ADSL,
     ADAE = ADAE,
     code = &quot;
@@ -505,7 +505,7 @@ include only one module: <code>tm_g_barchart_simple()</code>.</p>
   )
 )</code></pre>
 <p>Finally, we use <code>shiny</code> to launch the application:</p>
-<pre class="r"><code>if (interactive()) shiny::shinyApp(app$ui, app$server)</code></pre>
+<pre class="r"><code>if (interactive()) shinyApp(app$ui, app$server)</code></pre>
 <p>Some <code>teal.modules.clinical</code> modules allow for the
 specification of arguments using
 <code>teal.transform::choices_selected()</code>, such as the
@@ -527,7 +527,7 @@ app &lt;- init(
   )
 )
 
-if (interactive()) shiny::shinyApp(app$ui, app$server)</code></pre>
+if (interactive()) shinyApp(app$ui, app$server)</code></pre>
 <p>Please refer to the <a href="https://insightsengineering.github.io/teal.modules.clinical/latest-tag/reference/">API
 reference</a> of specific modules for more examples and information on
 the customization options available.</p>

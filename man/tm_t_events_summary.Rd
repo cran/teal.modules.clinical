@@ -88,13 +88,13 @@ event flag variables are provided.}
 \item{count_events}{(\code{logical})\cr whether to show count of events (based on \code{aeseq_var}). Only applies if event
 flag variables are provided.}
 
-\item{pre_output}{optional, (\code{shiny.tag})\cr with text placed before the output to put the output into context.
+\item{pre_output}{(\code{shiny.tag}) optional,\cr with text placed before the output to put the output into context.
 For example a title.}
 
-\item{post_output}{optional, (\code{shiny.tag})\cr with text placed after the output to put the output into context.
+\item{post_output}{(\code{shiny.tag}) optional,\cr with text placed after the output to put the output into context.
 For example the \code{\link[shiny:helpText]{shiny::helpText()}} elements are useful.}
 
-\item{basic_table_args}{optional, (\code{basic_table_args})\cr object created by \code{\link[teal.widgets:basic_table_args]{teal.widgets::basic_table_args()}}
+\item{basic_table_args}{(\code{basic_table_args}) optional\cr object created by \code{\link[teal.widgets:basic_table_args]{teal.widgets::basic_table_args()}}
 with settings for the module table. The argument is merged with option \code{teal.basic_table_args} and with default
 module arguments (hard coded in the module body).
 For more details, see the vignette: \code{vignette("custom-basic-table-arguments", package = "teal.widgets")}.}
@@ -107,13 +107,12 @@ This module produces an adverse events summary table.
 }
 \examples{
 library(dplyr)
-library(formatters)
 
 data <- teal_data()
 data <- within(data, {
   ADSL <- tmc_ex_adsl \%>\%
     mutate(
-      DTHFL = case_when( #' nolint
+      DTHFL = case_when(
         !is.na(DTHDT) ~ "Y",
         TRUE ~ ""
       ) \%>\% with_label("Subject Death Flag")
@@ -138,7 +137,7 @@ data <- within(data, {
       TMP_SMQ02 = aesi_label("Y.9.9.9.9/Z.9.9.9.9 AESI"),
       TMP_CQ01 = aesi_label(dat[["CQ01NAM"]])
     )
-    var_labels(dat)[names(column_labels)] <- as.character(column_labels)
+    col_labels(dat)[names(column_labels)] <- as.character(column_labels)
     dat
   }
 

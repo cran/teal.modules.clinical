@@ -81,13 +81,13 @@ enabled (see \code{add_total_row}).}
 in character or factor variables in the data. Defaults to \code{"<Missing>"}. To set a
 default \code{na_level} to apply in all modules, run \code{set_default_na_str("new_default")}.}
 
-\item{pre_output}{optional, (\code{shiny.tag})\cr with text placed before the output to put the output into context.
+\item{pre_output}{(\code{shiny.tag}) optional,\cr with text placed before the output to put the output into context.
 For example a title.}
 
-\item{post_output}{optional, (\code{shiny.tag})\cr with text placed after the output to put the output into context.
+\item{post_output}{(\code{shiny.tag}) optional,\cr with text placed after the output to put the output into context.
 For example the \code{\link[shiny:helpText]{shiny::helpText()}} elements are useful.}
 
-\item{basic_table_args}{optional, (\code{basic_table_args})\cr object created by \code{\link[teal.widgets:basic_table_args]{teal.widgets::basic_table_args()}}
+\item{basic_table_args}{(\code{basic_table_args}) optional\cr object created by \code{\link[teal.widgets:basic_table_args]{teal.widgets::basic_table_args()}}
 with settings for the module table. The argument is merged with option \code{teal.basic_table_args} and with default
 module arguments (hard coded in the module body).
 For more details, see the vignette: \code{vignette("custom-basic-table-arguments", package = "teal.widgets")}.}
@@ -100,7 +100,6 @@ The module produces an exposure table for risk management plan.
 }
 \examples{
 library(dplyr)
-library(formatters)
 
 data <- teal_data()
 data <- within(data, {
@@ -108,7 +107,7 @@ data <- within(data, {
   ADEX <- tmc_ex_adex
 
   set.seed(1, kind = "Mersenne-Twister")
-  labels <- var_labels(ADEX, fill = FALSE)
+  labels <- col_labels(ADEX, fill = FALSE)
   ADEX <- ADEX \%>\%
     distinct(USUBJID, .keep_all = TRUE) \%>\%
     mutate(
@@ -118,7 +117,7 @@ data <- within(data, {
       AVALU = "Days"
     ) \%>\%
     bind_rows(ADEX)
-  var_labels(ADEX) <- labels
+  col_labels(ADEX) <- labels
 })
 
 datanames <- c("ADSL", "ADEX")

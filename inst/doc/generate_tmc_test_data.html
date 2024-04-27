@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2024-02-22" />
+<meta name="date" content="2024-04-26" />
 
 <title>Example Data Generation</title>
 
@@ -1578,7 +1578,7 @@ border-radius: 0px;
 
 
 <h1 class="title toc-ignore">Example Data Generation</h1>
-<h4 class="date">2024-02-22</h4>
+<h4 class="date">2024-04-26</h4>
 
 </div>
 
@@ -1598,11 +1598,11 @@ tracking.</p>
 <div id="setup-helper-functions" class="section level2">
 <h2>Setup &amp; Helper Functions</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(formatters)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(teal.data)</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>study_duration_secs <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">seconds</span>(lubridate<span class="sc">::</span><span class="fu">years</span>(<span class="dv">2</span>))</span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>sample_fct <span class="ot">&lt;-</span> <span class="cf">function</span>(x, N, ...) { <span class="co"># nolint</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>sample_fct <span class="ot">&lt;-</span> <span class="cf">function</span>(x, N, ...) { </span>
 <span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  checkmate<span class="sc">::</span><span class="fu">assert_number</span>(N)</span>
 <span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  <span class="fu">factor</span>(<span class="fu">sample</span>(x, N, <span class="at">replace =</span> <span class="cn">TRUE</span>, ...), <span class="at">levels =</span> <span class="cf">if</span> (<span class="fu">is.factor</span>(x)) <span class="fu">levels</span>(x) <span class="cf">else</span> x)</span>
 <span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>}</span>
@@ -1679,46 +1679,51 @@ tracking.</p>
 <span id="cb1-80"><a href="#cb1-80" tabindex="-1"></a></span>
 <span id="cb1-81"><a href="#cb1-81" tabindex="-1"></a>str_extract <span class="ot">&lt;-</span> <span class="cf">function</span>(string, pattern) <span class="fu">regmatches</span>(string, <span class="fu">gregexpr</span>(pattern, string))</span>
 <span id="cb1-82"><a href="#cb1-82" tabindex="-1"></a></span>
-<span id="cb1-83"><a href="#cb1-83" tabindex="-1"></a>common_var_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb1-84"><a href="#cb1-84" tabindex="-1"></a>  <span class="at">USUBJID =</span> <span class="st">&quot;Unique Subject Identifier&quot;</span>,</span>
-<span id="cb1-85"><a href="#cb1-85" tabindex="-1"></a>  <span class="at">STUDYID =</span> <span class="st">&quot;Study Identifier&quot;</span>,</span>
-<span id="cb1-86"><a href="#cb1-86" tabindex="-1"></a>  <span class="at">PARAM =</span> <span class="st">&quot;Parameter&quot;</span>,</span>
-<span id="cb1-87"><a href="#cb1-87" tabindex="-1"></a>  <span class="at">PARAMCD =</span> <span class="st">&quot;Parameter Code&quot;</span>,</span>
-<span id="cb1-88"><a href="#cb1-88" tabindex="-1"></a>  <span class="at">AVISIT =</span> <span class="st">&quot;Analysis Visit&quot;</span>,</span>
-<span id="cb1-89"><a href="#cb1-89" tabindex="-1"></a>  <span class="at">AVISITN =</span> <span class="st">&quot;Analysis Visit (N)&quot;</span>,</span>
-<span id="cb1-90"><a href="#cb1-90" tabindex="-1"></a>  <span class="at">AVAL =</span> <span class="st">&quot;Analysis Value&quot;</span>,</span>
-<span id="cb1-91"><a href="#cb1-91" tabindex="-1"></a>  <span class="at">AVALU =</span> <span class="st">&quot;Analysis Value Unit&quot;</span>,</span>
-<span id="cb1-92"><a href="#cb1-92" tabindex="-1"></a>  <span class="at">AVALC =</span> <span class="st">&quot;Character Result/Finding&quot;</span>,</span>
-<span id="cb1-93"><a href="#cb1-93" tabindex="-1"></a>  <span class="at">BASE =</span> <span class="st">&quot;Baseline Value&quot;</span>,</span>
-<span id="cb1-94"><a href="#cb1-94" tabindex="-1"></a>  <span class="at">BASE2 =</span> <span class="st">&quot;Screening Value&quot;</span>,</span>
-<span id="cb1-95"><a href="#cb1-95" tabindex="-1"></a>  <span class="at">ABLFL =</span> <span class="st">&quot;Baseline Record Flag&quot;</span>,</span>
-<span id="cb1-96"><a href="#cb1-96" tabindex="-1"></a>  <span class="at">ABLFL2 =</span> <span class="st">&quot;Screening Record Flag&quot;</span>,</span>
-<span id="cb1-97"><a href="#cb1-97" tabindex="-1"></a>  <span class="at">CHG =</span> <span class="st">&quot;Absolute Change from Baseline&quot;</span>,</span>
-<span id="cb1-98"><a href="#cb1-98" tabindex="-1"></a>  <span class="at">PCHG =</span> <span class="st">&quot;Percentage Change from Baseline&quot;</span>,</span>
-<span id="cb1-99"><a href="#cb1-99" tabindex="-1"></a>  <span class="at">ANRIND =</span> <span class="st">&quot;Analysis Reference Range Indicator&quot;</span>,</span>
-<span id="cb1-100"><a href="#cb1-100" tabindex="-1"></a>  <span class="at">BNRIND =</span> <span class="st">&quot;Baseline Reference Range Indicator&quot;</span>,</span>
-<span id="cb1-101"><a href="#cb1-101" tabindex="-1"></a>  <span class="at">ANRLO =</span> <span class="st">&quot;Analysis Normal Range Lower Limit&quot;</span>,</span>
-<span id="cb1-102"><a href="#cb1-102" tabindex="-1"></a>  <span class="at">ANRHI =</span> <span class="st">&quot;Analysis Normal Range Upper Limit&quot;</span>,</span>
-<span id="cb1-103"><a href="#cb1-103" tabindex="-1"></a>  <span class="at">CNSR =</span> <span class="st">&quot;Censor&quot;</span>,</span>
-<span id="cb1-104"><a href="#cb1-104" tabindex="-1"></a>  <span class="at">ADTM =</span> <span class="st">&quot;Analysis Datetime&quot;</span>,</span>
-<span id="cb1-105"><a href="#cb1-105" tabindex="-1"></a>  <span class="at">ADY =</span> <span class="st">&quot;Analysis Relative Day&quot;</span>,</span>
-<span id="cb1-106"><a href="#cb1-106" tabindex="-1"></a>  <span class="at">ASTDY =</span> <span class="st">&quot;Analysis Start Relative Day&quot;</span>,</span>
-<span id="cb1-107"><a href="#cb1-107" tabindex="-1"></a>  <span class="at">AENDY =</span> <span class="st">&quot;Analysis End Relative Day&quot;</span>,</span>
-<span id="cb1-108"><a href="#cb1-108" tabindex="-1"></a>  <span class="at">ASTDTM =</span> <span class="st">&quot;Analysis Start Datetime&quot;</span>,</span>
-<span id="cb1-109"><a href="#cb1-109" tabindex="-1"></a>  <span class="at">AENDTM =</span> <span class="st">&quot;Analysis End Datetime&quot;</span>,</span>
-<span id="cb1-110"><a href="#cb1-110" tabindex="-1"></a>  <span class="at">VISITDY =</span> <span class="st">&quot;Planned Study Day of Visit&quot;</span>,</span>
-<span id="cb1-111"><a href="#cb1-111" tabindex="-1"></a>  <span class="at">EVNTDESC =</span> <span class="st">&quot;Event or Censoring Description&quot;</span>,</span>
-<span id="cb1-112"><a href="#cb1-112" tabindex="-1"></a>  <span class="at">CNSDTDSC =</span> <span class="st">&quot;Censor Date Description&quot;</span>,</span>
-<span id="cb1-113"><a href="#cb1-113" tabindex="-1"></a>  <span class="at">BASETYPE =</span> <span class="st">&quot;Baseline Type&quot;</span>,</span>
-<span id="cb1-114"><a href="#cb1-114" tabindex="-1"></a>  <span class="at">DTYPE =</span> <span class="st">&quot;Derivation Type&quot;</span>,</span>
-<span id="cb1-115"><a href="#cb1-115" tabindex="-1"></a>  <span class="at">ONTRTFL =</span> <span class="st">&quot;On Treatment Record Flag&quot;</span>,</span>
-<span id="cb1-116"><a href="#cb1-116" tabindex="-1"></a>  <span class="at">WORS01FL =</span> <span class="st">&quot;Worst Observation in Window Flag 01&quot;</span>,</span>
-<span id="cb1-117"><a href="#cb1-117" tabindex="-1"></a>  <span class="at">WORS02FL =</span> <span class="st">&quot;Worst Post-Baseline Observation&quot;</span></span>
-<span id="cb1-118"><a href="#cb1-118" tabindex="-1"></a>)</span></code></pre></div>
+<span id="cb1-83"><a href="#cb1-83" tabindex="-1"></a>with_label <span class="ot">&lt;-</span> <span class="cf">function</span>(x, label) {</span>
+<span id="cb1-84"><a href="#cb1-84" tabindex="-1"></a>  <span class="fu">attr</span>(x, <span class="st">&quot;label&quot;</span>) <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(label)</span>
+<span id="cb1-85"><a href="#cb1-85" tabindex="-1"></a>  x</span>
+<span id="cb1-86"><a href="#cb1-86" tabindex="-1"></a>}</span>
+<span id="cb1-87"><a href="#cb1-87" tabindex="-1"></a></span>
+<span id="cb1-88"><a href="#cb1-88" tabindex="-1"></a>common_var_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb1-89"><a href="#cb1-89" tabindex="-1"></a>  <span class="at">USUBJID =</span> <span class="st">&quot;Unique Subject Identifier&quot;</span>,</span>
+<span id="cb1-90"><a href="#cb1-90" tabindex="-1"></a>  <span class="at">STUDYID =</span> <span class="st">&quot;Study Identifier&quot;</span>,</span>
+<span id="cb1-91"><a href="#cb1-91" tabindex="-1"></a>  <span class="at">PARAM =</span> <span class="st">&quot;Parameter&quot;</span>,</span>
+<span id="cb1-92"><a href="#cb1-92" tabindex="-1"></a>  <span class="at">PARAMCD =</span> <span class="st">&quot;Parameter Code&quot;</span>,</span>
+<span id="cb1-93"><a href="#cb1-93" tabindex="-1"></a>  <span class="at">AVISIT =</span> <span class="st">&quot;Analysis Visit&quot;</span>,</span>
+<span id="cb1-94"><a href="#cb1-94" tabindex="-1"></a>  <span class="at">AVISITN =</span> <span class="st">&quot;Analysis Visit (N)&quot;</span>,</span>
+<span id="cb1-95"><a href="#cb1-95" tabindex="-1"></a>  <span class="at">AVAL =</span> <span class="st">&quot;Analysis Value&quot;</span>,</span>
+<span id="cb1-96"><a href="#cb1-96" tabindex="-1"></a>  <span class="at">AVALU =</span> <span class="st">&quot;Analysis Value Unit&quot;</span>,</span>
+<span id="cb1-97"><a href="#cb1-97" tabindex="-1"></a>  <span class="at">AVALC =</span> <span class="st">&quot;Character Result/Finding&quot;</span>,</span>
+<span id="cb1-98"><a href="#cb1-98" tabindex="-1"></a>  <span class="at">BASE =</span> <span class="st">&quot;Baseline Value&quot;</span>,</span>
+<span id="cb1-99"><a href="#cb1-99" tabindex="-1"></a>  <span class="at">BASE2 =</span> <span class="st">&quot;Screening Value&quot;</span>,</span>
+<span id="cb1-100"><a href="#cb1-100" tabindex="-1"></a>  <span class="at">ABLFL =</span> <span class="st">&quot;Baseline Record Flag&quot;</span>,</span>
+<span id="cb1-101"><a href="#cb1-101" tabindex="-1"></a>  <span class="at">ABLFL2 =</span> <span class="st">&quot;Screening Record Flag&quot;</span>,</span>
+<span id="cb1-102"><a href="#cb1-102" tabindex="-1"></a>  <span class="at">CHG =</span> <span class="st">&quot;Absolute Change from Baseline&quot;</span>,</span>
+<span id="cb1-103"><a href="#cb1-103" tabindex="-1"></a>  <span class="at">PCHG =</span> <span class="st">&quot;Percentage Change from Baseline&quot;</span>,</span>
+<span id="cb1-104"><a href="#cb1-104" tabindex="-1"></a>  <span class="at">ANRIND =</span> <span class="st">&quot;Analysis Reference Range Indicator&quot;</span>,</span>
+<span id="cb1-105"><a href="#cb1-105" tabindex="-1"></a>  <span class="at">BNRIND =</span> <span class="st">&quot;Baseline Reference Range Indicator&quot;</span>,</span>
+<span id="cb1-106"><a href="#cb1-106" tabindex="-1"></a>  <span class="at">ANRLO =</span> <span class="st">&quot;Analysis Normal Range Lower Limit&quot;</span>,</span>
+<span id="cb1-107"><a href="#cb1-107" tabindex="-1"></a>  <span class="at">ANRHI =</span> <span class="st">&quot;Analysis Normal Range Upper Limit&quot;</span>,</span>
+<span id="cb1-108"><a href="#cb1-108" tabindex="-1"></a>  <span class="at">CNSR =</span> <span class="st">&quot;Censor&quot;</span>,</span>
+<span id="cb1-109"><a href="#cb1-109" tabindex="-1"></a>  <span class="at">ADTM =</span> <span class="st">&quot;Analysis Datetime&quot;</span>,</span>
+<span id="cb1-110"><a href="#cb1-110" tabindex="-1"></a>  <span class="at">ADY =</span> <span class="st">&quot;Analysis Relative Day&quot;</span>,</span>
+<span id="cb1-111"><a href="#cb1-111" tabindex="-1"></a>  <span class="at">ASTDY =</span> <span class="st">&quot;Analysis Start Relative Day&quot;</span>,</span>
+<span id="cb1-112"><a href="#cb1-112" tabindex="-1"></a>  <span class="at">AENDY =</span> <span class="st">&quot;Analysis End Relative Day&quot;</span>,</span>
+<span id="cb1-113"><a href="#cb1-113" tabindex="-1"></a>  <span class="at">ASTDTM =</span> <span class="st">&quot;Analysis Start Datetime&quot;</span>,</span>
+<span id="cb1-114"><a href="#cb1-114" tabindex="-1"></a>  <span class="at">AENDTM =</span> <span class="st">&quot;Analysis End Datetime&quot;</span>,</span>
+<span id="cb1-115"><a href="#cb1-115" tabindex="-1"></a>  <span class="at">VISITDY =</span> <span class="st">&quot;Planned Study Day of Visit&quot;</span>,</span>
+<span id="cb1-116"><a href="#cb1-116" tabindex="-1"></a>  <span class="at">EVNTDESC =</span> <span class="st">&quot;Event or Censoring Description&quot;</span>,</span>
+<span id="cb1-117"><a href="#cb1-117" tabindex="-1"></a>  <span class="at">CNSDTDSC =</span> <span class="st">&quot;Censor Date Description&quot;</span>,</span>
+<span id="cb1-118"><a href="#cb1-118" tabindex="-1"></a>  <span class="at">BASETYPE =</span> <span class="st">&quot;Baseline Type&quot;</span>,</span>
+<span id="cb1-119"><a href="#cb1-119" tabindex="-1"></a>  <span class="at">DTYPE =</span> <span class="st">&quot;Derivation Type&quot;</span>,</span>
+<span id="cb1-120"><a href="#cb1-120" tabindex="-1"></a>  <span class="at">ONTRTFL =</span> <span class="st">&quot;On Treatment Record Flag&quot;</span>,</span>
+<span id="cb1-121"><a href="#cb1-121" tabindex="-1"></a>  <span class="at">WORS01FL =</span> <span class="st">&quot;Worst Observation in Window Flag 01&quot;</span>,</span>
+<span id="cb1-122"><a href="#cb1-122" tabindex="-1"></a>  <span class="at">WORS02FL =</span> <span class="st">&quot;Worst Post-Baseline Observation&quot;</span></span>
+<span id="cb1-123"><a href="#cb1-123" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 <div id="adsl" class="section level2">
 <h2><code>ADSL</code></h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>generate_adsl <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">N =</span> <span class="dv">200</span>) { <span class="co"># nolint</span></span>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>generate_adsl <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">N =</span> <span class="dv">200</span>) { </span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  sys_dtm <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">fast_strptime</span>(<span class="st">&quot;20/2/2019 11:16:16.683&quot;</span>, <span class="st">&quot;%d/%m/%Y %H:%M:%OS&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  country_site_prob <span class="ot">&lt;-</span> <span class="fu">c</span>(.<span class="dv">5</span>, .<span class="dv">121</span>, .<span class="dv">077</span>, .<span class="dv">077</span>, .<span class="dv">075</span>, .<span class="dv">052</span>, .<span class="dv">046</span>, .<span class="dv">025</span>, .<span class="dv">014</span>, .<span class="dv">003</span>)</span>
@@ -1775,51 +1780,53 @@ tracking.</p>
 <span id="cb2-55"><a href="#cb2-55" tabindex="-1"></a>      )) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;Geographic Region 1&quot;</span>),</span>
 <span id="cb2-56"><a href="#cb2-56" tabindex="-1"></a>      <span class="at">SAFFL =</span> <span class="fu">factor</span>(<span class="st">&quot;Y&quot;</span>) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;Safety Population Flag&quot;</span>)</span>
 <span id="cb2-57"><a href="#cb2-57" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb2-58"><a href="#cb2-58" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">USUBJID =</span> <span class="fu">paste</span>(.data<span class="sc">$</span>STUDYID, .data<span class="sc">$</span>SITEID, .data<span class="sc">$</span>SUBJID, <span class="at">sep =</span> <span class="st">&quot;-&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-59"><a href="#cb2-59" tabindex="-1"></a>      <span class="fu">with_label</span>(<span class="st">&quot;Unique Subject Identifier&quot;</span>))</span>
-<span id="cb2-60"><a href="#cb2-60" tabindex="-1"></a></span>
-<span id="cb2-61"><a href="#cb2-61" tabindex="-1"></a>  <span class="co"># disposition related variables</span></span>
-<span id="cb2-62"><a href="#cb2-62" tabindex="-1"></a>  <span class="co"># using probability of 1 for the &quot;DEATH&quot; level to ensure at least one death record exists</span></span>
-<span id="cb2-63"><a href="#cb2-63" tabindex="-1"></a>  l_dcsreas <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb2-64"><a href="#cb2-64" tabindex="-1"></a>    <span class="at">choices =</span> <span class="fu">c</span>(</span>
-<span id="cb2-65"><a href="#cb2-65" tabindex="-1"></a>      <span class="st">&quot;ADVERSE EVENT&quot;</span>, <span class="st">&quot;DEATH&quot;</span>, <span class="st">&quot;LACK OF EFFICACY&quot;</span>, <span class="st">&quot;PHYSICIAN DECISION&quot;</span>,</span>
-<span id="cb2-66"><a href="#cb2-66" tabindex="-1"></a>      <span class="st">&quot;PROTOCOL VIOLATION&quot;</span>, <span class="st">&quot;WITHDRAWAL BY PARENT/GUARDIAN&quot;</span>, <span class="st">&quot;WITHDRAWAL BY SUBJECT&quot;</span></span>
-<span id="cb2-67"><a href="#cb2-67" tabindex="-1"></a>    ),</span>
-<span id="cb2-68"><a href="#cb2-68" tabindex="-1"></a>    <span class="at">prob =</span> <span class="fu">c</span>(.<span class="dv">2</span>, <span class="dv">1</span>, .<span class="dv">1</span>, .<span class="dv">1</span>, .<span class="dv">2</span>, .<span class="dv">1</span>, .<span class="dv">1</span>)</span>
-<span id="cb2-69"><a href="#cb2-69" tabindex="-1"></a>  )</span>
-<span id="cb2-70"><a href="#cb2-70" tabindex="-1"></a>  l_dthcat_other <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb2-71"><a href="#cb2-71" tabindex="-1"></a>    <span class="at">choices =</span> <span class="fu">c</span>(</span>
-<span id="cb2-72"><a href="#cb2-72" tabindex="-1"></a>      <span class="st">&quot;Post-study reporting of death&quot;</span>, <span class="st">&quot;LOST TO FOLLOW UP&quot;</span>, <span class="st">&quot;MISSING&quot;</span>, <span class="st">&quot;SUICIDE&quot;</span>, <span class="st">&quot;UNKNOWN&quot;</span></span>
-<span id="cb2-73"><a href="#cb2-73" tabindex="-1"></a>    ),</span>
-<span id="cb2-74"><a href="#cb2-74" tabindex="-1"></a>    <span class="at">prob =</span> <span class="fu">c</span>(.<span class="dv">1</span>, .<span class="dv">3</span>, .<span class="dv">3</span>, .<span class="dv">2</span>, .<span class="dv">1</span>)</span>
-<span id="cb2-75"><a href="#cb2-75" tabindex="-1"></a>  )</span>
-<span id="cb2-76"><a href="#cb2-76" tabindex="-1"></a></span>
-<span id="cb2-77"><a href="#cb2-77" tabindex="-1"></a>  adsl <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span></span>
-<span id="cb2-78"><a href="#cb2-78" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb2-79"><a href="#cb2-79" tabindex="-1"></a>      <span class="at">EOSSTT =</span> dplyr<span class="sc">::</span><span class="fu">case_when</span>(</span>
-<span id="cb2-80"><a href="#cb2-80" tabindex="-1"></a>        EOSDY <span class="sc">==</span> <span class="fu">max</span>(EOSDY, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">&quot;COMPLETED&quot;</span>,</span>
-<span id="cb2-81"><a href="#cb2-81" tabindex="-1"></a>        EOSDY <span class="sc">&lt;</span> <span class="fu">max</span>(EOSDY, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">&quot;DISCONTINUED&quot;</span>,</span>
-<span id="cb2-82"><a href="#cb2-82" tabindex="-1"></a>        <span class="fu">is.na</span>(TRTEDTM) <span class="sc">~</span> <span class="st">&quot;ONGOING&quot;</span></span>
-<span id="cb2-83"><a href="#cb2-83" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;End of Study Status&quot;</span>)</span>
-<span id="cb2-84"><a href="#cb2-84" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb2-85"><a href="#cb2-85" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb2-86"><a href="#cb2-86" tabindex="-1"></a>      <span class="at">EOTSTT =</span> .data<span class="sc">$</span>EOSSTT <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;End of Treatment Status&quot;</span>)</span>
-<span id="cb2-87"><a href="#cb2-87" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb2-88"><a href="#cb2-88" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb2-89"><a href="#cb2-89" tabindex="-1"></a>      <span class="at">DCSREAS =</span> <span class="fu">ifelse</span>(</span>
-<span id="cb2-90"><a href="#cb2-90" tabindex="-1"></a>        .data<span class="sc">$</span>EOSSTT <span class="sc">==</span> <span class="st">&quot;DISCONTINUED&quot;</span>,</span>
-<span id="cb2-91"><a href="#cb2-91" tabindex="-1"></a>        <span class="fu">sample</span>(<span class="at">x =</span> l_dcsreas<span class="sc">$</span>choices, <span class="at">size =</span> N, <span class="at">replace =</span> <span class="cn">TRUE</span>, <span class="at">prob =</span> l_dcsreas<span class="sc">$</span>prob),</span>
-<span id="cb2-92"><a href="#cb2-92" tabindex="-1"></a>        <span class="fu">as.character</span>(<span class="cn">NA</span>)</span>
-<span id="cb2-93"><a href="#cb2-93" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;Reason for Discontinuation from Study&quot;</span>)</span>
-<span id="cb2-94"><a href="#cb2-94" tabindex="-1"></a>    )</span>
-<span id="cb2-95"><a href="#cb2-95" tabindex="-1"></a></span>
-<span id="cb2-96"><a href="#cb2-96" tabindex="-1"></a>  tmc_ex_adsl <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span></span>
-<span id="cb2-97"><a href="#cb2-97" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">DTHDT =</span> dplyr<span class="sc">::</span><span class="fu">case_when</span>(</span>
-<span id="cb2-98"><a href="#cb2-98" tabindex="-1"></a>      DCSREAS <span class="sc">==</span> <span class="st">&quot;DEATH&quot;</span> <span class="sc">~</span> lubridate<span class="sc">::</span><span class="fu">date</span>(TRTEDTM <span class="sc">+</span> lubridate<span class="sc">::</span><span class="fu">days</span>(<span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">50</span>, <span class="at">size =</span> N, <span class="at">replace =</span> <span class="cn">TRUE</span>)))</span>
-<span id="cb2-99"><a href="#cb2-99" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;Date of Death&quot;</span>))</span>
-<span id="cb2-100"><a href="#cb2-100" tabindex="-1"></a></span>
-<span id="cb2-101"><a href="#cb2-101" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adsl, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adsl.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
-<span id="cb2-102"><a href="#cb2-102" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb2-58"><a href="#cb2-58" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb2-59"><a href="#cb2-59" tabindex="-1"></a>      <span class="at">USUBJID =</span> <span class="fu">paste</span>(.data<span class="sc">$</span>STUDYID, .data<span class="sc">$</span>SITEID, .data<span class="sc">$</span>SUBJID, <span class="at">sep =</span> <span class="st">&quot;-&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-60"><a href="#cb2-60" tabindex="-1"></a>        <span class="fu">with_label</span>(<span class="st">&quot;Unique Subject Identifier&quot;</span>)</span>
+<span id="cb2-61"><a href="#cb2-61" tabindex="-1"></a>    )</span>
+<span id="cb2-62"><a href="#cb2-62" tabindex="-1"></a></span>
+<span id="cb2-63"><a href="#cb2-63" tabindex="-1"></a>  <span class="co"># disposition related variables</span></span>
+<span id="cb2-64"><a href="#cb2-64" tabindex="-1"></a>  <span class="co"># using probability of 1 for the &quot;DEATH&quot; level to ensure at least one death record exists</span></span>
+<span id="cb2-65"><a href="#cb2-65" tabindex="-1"></a>  l_dcsreas <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb2-66"><a href="#cb2-66" tabindex="-1"></a>    <span class="at">choices =</span> <span class="fu">c</span>(</span>
+<span id="cb2-67"><a href="#cb2-67" tabindex="-1"></a>      <span class="st">&quot;ADVERSE EVENT&quot;</span>, <span class="st">&quot;DEATH&quot;</span>, <span class="st">&quot;LACK OF EFFICACY&quot;</span>, <span class="st">&quot;PHYSICIAN DECISION&quot;</span>,</span>
+<span id="cb2-68"><a href="#cb2-68" tabindex="-1"></a>      <span class="st">&quot;PROTOCOL VIOLATION&quot;</span>, <span class="st">&quot;WITHDRAWAL BY PARENT/GUARDIAN&quot;</span>, <span class="st">&quot;WITHDRAWAL BY SUBJECT&quot;</span></span>
+<span id="cb2-69"><a href="#cb2-69" tabindex="-1"></a>    ),</span>
+<span id="cb2-70"><a href="#cb2-70" tabindex="-1"></a>    <span class="at">prob =</span> <span class="fu">c</span>(.<span class="dv">2</span>, <span class="dv">1</span>, .<span class="dv">1</span>, .<span class="dv">1</span>, .<span class="dv">2</span>, .<span class="dv">1</span>, .<span class="dv">1</span>)</span>
+<span id="cb2-71"><a href="#cb2-71" tabindex="-1"></a>  )</span>
+<span id="cb2-72"><a href="#cb2-72" tabindex="-1"></a>  l_dthcat_other <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb2-73"><a href="#cb2-73" tabindex="-1"></a>    <span class="at">choices =</span> <span class="fu">c</span>(</span>
+<span id="cb2-74"><a href="#cb2-74" tabindex="-1"></a>      <span class="st">&quot;Post-study reporting of death&quot;</span>, <span class="st">&quot;LOST TO FOLLOW UP&quot;</span>, <span class="st">&quot;MISSING&quot;</span>, <span class="st">&quot;SUICIDE&quot;</span>, <span class="st">&quot;UNKNOWN&quot;</span></span>
+<span id="cb2-75"><a href="#cb2-75" tabindex="-1"></a>    ),</span>
+<span id="cb2-76"><a href="#cb2-76" tabindex="-1"></a>    <span class="at">prob =</span> <span class="fu">c</span>(.<span class="dv">1</span>, .<span class="dv">3</span>, .<span class="dv">3</span>, .<span class="dv">2</span>, .<span class="dv">1</span>)</span>
+<span id="cb2-77"><a href="#cb2-77" tabindex="-1"></a>  )</span>
+<span id="cb2-78"><a href="#cb2-78" tabindex="-1"></a></span>
+<span id="cb2-79"><a href="#cb2-79" tabindex="-1"></a>  adsl <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span></span>
+<span id="cb2-80"><a href="#cb2-80" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb2-81"><a href="#cb2-81" tabindex="-1"></a>      <span class="at">EOSSTT =</span> dplyr<span class="sc">::</span><span class="fu">case_when</span>(</span>
+<span id="cb2-82"><a href="#cb2-82" tabindex="-1"></a>        EOSDY <span class="sc">==</span> <span class="fu">max</span>(EOSDY, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">&quot;COMPLETED&quot;</span>,</span>
+<span id="cb2-83"><a href="#cb2-83" tabindex="-1"></a>        EOSDY <span class="sc">&lt;</span> <span class="fu">max</span>(EOSDY, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">&quot;DISCONTINUED&quot;</span>,</span>
+<span id="cb2-84"><a href="#cb2-84" tabindex="-1"></a>        <span class="fu">is.na</span>(TRTEDTM) <span class="sc">~</span> <span class="st">&quot;ONGOING&quot;</span></span>
+<span id="cb2-85"><a href="#cb2-85" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;End of Study Status&quot;</span>)</span>
+<span id="cb2-86"><a href="#cb2-86" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb2-87"><a href="#cb2-87" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb2-88"><a href="#cb2-88" tabindex="-1"></a>      <span class="at">EOTSTT =</span> .data<span class="sc">$</span>EOSSTT <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;End of Treatment Status&quot;</span>)</span>
+<span id="cb2-89"><a href="#cb2-89" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb2-90"><a href="#cb2-90" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb2-91"><a href="#cb2-91" tabindex="-1"></a>      <span class="at">DCSREAS =</span> <span class="fu">ifelse</span>(</span>
+<span id="cb2-92"><a href="#cb2-92" tabindex="-1"></a>        .data<span class="sc">$</span>EOSSTT <span class="sc">==</span> <span class="st">&quot;DISCONTINUED&quot;</span>,</span>
+<span id="cb2-93"><a href="#cb2-93" tabindex="-1"></a>        <span class="fu">sample</span>(<span class="at">x =</span> l_dcsreas<span class="sc">$</span>choices, <span class="at">size =</span> N, <span class="at">replace =</span> <span class="cn">TRUE</span>, <span class="at">prob =</span> l_dcsreas<span class="sc">$</span>prob),</span>
+<span id="cb2-94"><a href="#cb2-94" tabindex="-1"></a>        <span class="fu">as.character</span>(<span class="cn">NA</span>)</span>
+<span id="cb2-95"><a href="#cb2-95" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;Reason for Discontinuation from Study&quot;</span>)</span>
+<span id="cb2-96"><a href="#cb2-96" tabindex="-1"></a>    )</span>
+<span id="cb2-97"><a href="#cb2-97" tabindex="-1"></a></span>
+<span id="cb2-98"><a href="#cb2-98" tabindex="-1"></a>  tmc_ex_adsl <span class="ot">&lt;-</span> adsl <span class="sc">%&gt;%</span></span>
+<span id="cb2-99"><a href="#cb2-99" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">DTHDT =</span> dplyr<span class="sc">::</span><span class="fu">case_when</span>(</span>
+<span id="cb2-100"><a href="#cb2-100" tabindex="-1"></a>      DCSREAS <span class="sc">==</span> <span class="st">&quot;DEATH&quot;</span> <span class="sc">~</span> lubridate<span class="sc">::</span><span class="fu">date</span>(TRTEDTM <span class="sc">+</span> lubridate<span class="sc">::</span><span class="fu">days</span>(<span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">50</span>, <span class="at">size =</span> N, <span class="at">replace =</span> <span class="cn">TRUE</span>)))</span>
+<span id="cb2-101"><a href="#cb2-101" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;Date of Death&quot;</span>))</span>
+<span id="cb2-102"><a href="#cb2-102" tabindex="-1"></a></span>
+<span id="cb2-103"><a href="#cb2-103" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adsl, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adsl.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
+<span id="cb2-104"><a href="#cb2-104" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 <div id="adae" class="section level2">
 <h2><code>ADAE</code></h2>
@@ -1974,7 +1981,7 @@ tracking.</p>
 <span id="cb3-149"><a href="#cb3-149" tabindex="-1"></a>        <span class="fu">as.character</span>(<span class="fu">sample_fct</span>(actions, <span class="fu">nrow</span>(adae), <span class="at">prob =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.05</span>, <span class="fl">0.05</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.1</span>, <span class="fl">0.45</span>, <span class="fl">0.1</span>, <span class="fl">0.05</span>)))</span>
 <span id="cb3-150"><a href="#cb3-150" tabindex="-1"></a>      )) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;Action Taken With Study Treatment&quot;</span>)</span>
 <span id="cb3-151"><a href="#cb3-151" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb3-152"><a href="#cb3-152" tabindex="-1"></a>    <span class="fu">var_relabel</span>(</span>
+<span id="cb3-152"><a href="#cb3-152" tabindex="-1"></a>    <span class="fu">col_relabel</span>(</span>
 <span id="cb3-153"><a href="#cb3-153" tabindex="-1"></a>      <span class="at">AEBODSYS =</span> <span class="st">&quot;Body System or Organ Class&quot;</span>,</span>
 <span id="cb3-154"><a href="#cb3-154" tabindex="-1"></a>      <span class="at">AELLT =</span> <span class="st">&quot;Lowest Level Term&quot;</span>,</span>
 <span id="cb3-155"><a href="#cb3-155" tabindex="-1"></a>      <span class="at">AEDECOD =</span> <span class="st">&quot;Dictionary-Derived Term&quot;</span>,</span>
@@ -1994,9 +2001,9 @@ tracking.</p>
 <span id="cb3-169"><a href="#cb3-169" tabindex="-1"></a>    )</span>
 <span id="cb3-170"><a href="#cb3-170" tabindex="-1"></a></span>
 <span id="cb3-171"><a href="#cb3-171" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb3-172"><a href="#cb3-172" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_adae)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_adae))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
+<span id="cb3-172"><a href="#cb3-172" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_adae)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_adae))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb3-173"><a href="#cb3-173" tabindex="-1"></a>  )</span>
-<span id="cb3-174"><a href="#cb3-174" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_adae[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb3-174"><a href="#cb3-174" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_adae[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb3-175"><a href="#cb3-175" tabindex="-1"></a></span>
 <span id="cb3-176"><a href="#cb3-176" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adae, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adae.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb3-177"><a href="#cb3-177" tabindex="-1"></a>}</span></code></pre></div>
@@ -2166,10 +2173,10 @@ tracking.</p>
 <span id="cb4-161"><a href="#cb4-161" tabindex="-1"></a>    )</span>
 <span id="cb4-162"><a href="#cb4-162" tabindex="-1"></a></span>
 <span id="cb4-163"><a href="#cb4-163" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb4-164"><a href="#cb4-164" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_adaette)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_adaette))]),</span>
+<span id="cb4-164"><a href="#cb4-164" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_adaette)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_adaette))]),</span>
 <span id="cb4-165"><a href="#cb4-165" tabindex="-1"></a>    <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb4-166"><a href="#cb4-166" tabindex="-1"></a>  )</span>
-<span id="cb4-167"><a href="#cb4-167" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_adaette[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb4-167"><a href="#cb4-167" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_adaette[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb4-168"><a href="#cb4-168" tabindex="-1"></a></span>
 <span id="cb4-169"><a href="#cb4-169" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adaette, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adaette.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb4-170"><a href="#cb4-170" tabindex="-1"></a>}</span></code></pre></div>
@@ -2265,7 +2272,7 @@ tracking.</p>
 <span id="cb5-87"><a href="#cb5-87" tabindex="-1"></a>        <span class="st">&quot;Q4H&quot;</span>, <span class="st">&quot;QD&quot;</span>, <span class="st">&quot;TID&quot;</span>, <span class="st">&quot;4 TIMES PER MONTH&quot;</span></span>
 <span id="cb5-88"><a href="#cb5-88" tabindex="-1"></a>      ), dplyr<span class="sc">::</span><span class="fu">n</span>(), <span class="at">replace =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> <span class="fu">with_label</span>(<span class="st">&quot;Dosing Frequency per Interval&quot;</span>)</span>
 <span id="cb5-89"><a href="#cb5-89" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb5-90"><a href="#cb5-90" tabindex="-1"></a>    <span class="fu">var_relabel</span>(</span>
+<span id="cb5-90"><a href="#cb5-90" tabindex="-1"></a>    <span class="fu">col_relabel</span>(</span>
 <span id="cb5-91"><a href="#cb5-91" tabindex="-1"></a>      <span class="at">CMCLAS =</span> <span class="st">&quot;Medication Class&quot;</span>,</span>
 <span id="cb5-92"><a href="#cb5-92" tabindex="-1"></a>      <span class="at">CMDECOD =</span> <span class="st">&quot;Standardized Medication Name&quot;</span>,</span>
 <span id="cb5-93"><a href="#cb5-93" tabindex="-1"></a>      <span class="at">ATIREL =</span> <span class="st">&quot;Time Relation of Medication&quot;</span>,</span>
@@ -2273,9 +2280,9 @@ tracking.</p>
 <span id="cb5-95"><a href="#cb5-95" tabindex="-1"></a>    )</span>
 <span id="cb5-96"><a href="#cb5-96" tabindex="-1"></a></span>
 <span id="cb5-97"><a href="#cb5-97" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb5-98"><a href="#cb5-98" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_adcm)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_adcm))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
+<span id="cb5-98"><a href="#cb5-98" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_adcm)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_adcm))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb5-99"><a href="#cb5-99" tabindex="-1"></a>  )</span>
-<span id="cb5-100"><a href="#cb5-100" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_adcm[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb5-100"><a href="#cb5-100" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_adcm[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb5-101"><a href="#cb5-101" tabindex="-1"></a></span>
 <span id="cb5-102"><a href="#cb5-102" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adcm, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adcm.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb5-103"><a href="#cb5-103" tabindex="-1"></a>}</span></code></pre></div>
@@ -2449,13 +2456,13 @@ tracking.</p>
 <span id="cb6-165"><a href="#cb6-165" tabindex="-1"></a>    <span class="fu">return</span>(data)</span>
 <span id="cb6-166"><a href="#cb6-166" tabindex="-1"></a>  }</span>
 <span id="cb6-167"><a href="#cb6-167" tabindex="-1"></a></span>
-<span id="cb6-168"><a href="#cb6-168" tabindex="-1"></a>  lbls <span class="ot">&lt;-</span> <span class="fu">var_labels</span>(adeg)</span>
+<span id="cb6-168"><a href="#cb6-168" tabindex="-1"></a>  lbls <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(adeg)</span>
 <span id="cb6-169"><a href="#cb6-169" tabindex="-1"></a>  adeg <span class="ot">&lt;-</span> <span class="fu">rbind</span>(adeg, <span class="fu">get_groups</span>(adeg, <span class="cn">TRUE</span>), <span class="fu">get_groups</span>(adeg, <span class="cn">FALSE</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb6-170"><a href="#cb6-170" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">arrange</span>(.data<span class="sc">$</span>row_check) <span class="sc">%&gt;%</span></span>
 <span id="cb6-171"><a href="#cb6-171" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">group_by</span>(.data<span class="sc">$</span>USUBJID, .data<span class="sc">$</span>PARAMCD, .data<span class="sc">$</span>BASETYPE) <span class="sc">%&gt;%</span></span>
 <span id="cb6-172"><a href="#cb6-172" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">arrange</span>(.data<span class="sc">$</span>AVISIT, <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-173"><a href="#cb6-173" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">ungroup</span>()</span>
-<span id="cb6-174"><a href="#cb6-174" tabindex="-1"></a>  <span class="fu">var_labels</span>(adeg) <span class="ot">&lt;-</span> lbls</span>
+<span id="cb6-174"><a href="#cb6-174" tabindex="-1"></a>  <span class="fu">col_labels</span>(adeg) <span class="ot">&lt;-</span> lbls</span>
 <span id="cb6-175"><a href="#cb6-175" tabindex="-1"></a></span>
 <span id="cb6-176"><a href="#cb6-176" tabindex="-1"></a>  adeg <span class="ot">&lt;-</span> adeg[, <span class="sc">-</span><span class="fu">which</span>(<span class="fu">names</span>(adeg) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;row_check&quot;</span>))]</span>
 <span id="cb6-177"><a href="#cb6-177" tabindex="-1"></a>  flag_variables <span class="ot">&lt;-</span> <span class="cf">function</span>(data, worst_obs) {</span>
@@ -2523,12 +2530,12 @@ tracking.</p>
 <span id="cb6-239"><a href="#cb6-239" tabindex="-1"></a>      <span class="fu">as.character</span>(.data<span class="sc">$</span>BASE)</span>
 <span id="cb6-240"><a href="#cb6-240" tabindex="-1"></a>    )) <span class="sc">%&gt;%</span></span>
 <span id="cb6-241"><a href="#cb6-241" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb6-242"><a href="#cb6-242" tabindex="-1"></a>    <span class="fu">var_relabel</span>(<span class="at">BASEC =</span> <span class="st">&quot;Baseline Character Value&quot;</span>)</span>
+<span id="cb6-242"><a href="#cb6-242" tabindex="-1"></a>    <span class="fu">col_relabel</span>(<span class="at">BASEC =</span> <span class="st">&quot;Baseline Character Value&quot;</span>)</span>
 <span id="cb6-243"><a href="#cb6-243" tabindex="-1"></a></span>
 <span id="cb6-244"><a href="#cb6-244" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb6-245"><a href="#cb6-245" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_adeg)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_adeg))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
+<span id="cb6-245"><a href="#cb6-245" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_adeg)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_adeg))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb6-246"><a href="#cb6-246" tabindex="-1"></a>  )</span>
-<span id="cb6-247"><a href="#cb6-247" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_adeg[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb6-247"><a href="#cb6-247" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_adeg[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb6-248"><a href="#cb6-248" tabindex="-1"></a></span>
 <span id="cb6-249"><a href="#cb6-249" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adeg, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adeg.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb6-250"><a href="#cb6-250" tabindex="-1"></a>}</span></code></pre></div>
@@ -2717,7 +2724,7 @@ tracking.</p>
 <span id="cb7-180"><a href="#cb7-180" tabindex="-1"></a>      .data<span class="sc">$</span>ASTDTM,</span>
 <span id="cb7-181"><a href="#cb7-181" tabindex="-1"></a>      .data<span class="sc">$</span>AVISITN</span>
 <span id="cb7-182"><a href="#cb7-182" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb7-183"><a href="#cb7-183" tabindex="-1"></a>    <span class="fu">var_relabel</span>(</span>
+<span id="cb7-183"><a href="#cb7-183" tabindex="-1"></a>    <span class="fu">col_relabel</span>(</span>
 <span id="cb7-184"><a href="#cb7-184" tabindex="-1"></a>      <span class="at">PARCAT1 =</span> <span class="st">&quot;Parameter Category (Individual/Overall)&quot;</span>,</span>
 <span id="cb7-185"><a href="#cb7-185" tabindex="-1"></a>      <span class="at">PARCAT2 =</span> <span class="st">&quot;Parameter Category (Drug A/Drug B)&quot;</span>,</span>
 <span id="cb7-186"><a href="#cb7-186" tabindex="-1"></a>      <span class="at">EXSEQ =</span> <span class="st">&quot;Analysis Sequence Number&quot;</span></span>
@@ -2733,9 +2740,9 @@ tracking.</p>
 <span id="cb7-196"><a href="#cb7-196" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">distinct</span>(USUBJID, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb7-197"><a href="#cb7-197" tabindex="-1"></a></span>
 <span id="cb7-198"><a href="#cb7-198" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb7-199"><a href="#cb7-199" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_adex)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_adex))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
+<span id="cb7-199"><a href="#cb7-199" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_adex)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_adex))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb7-200"><a href="#cb7-200" tabindex="-1"></a>  )</span>
-<span id="cb7-201"><a href="#cb7-201" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_adex[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb7-201"><a href="#cb7-201" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_adex[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb7-202"><a href="#cb7-202" tabindex="-1"></a></span>
 <span id="cb7-203"><a href="#cb7-203" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adex, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adex.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb7-204"><a href="#cb7-204" tabindex="-1"></a>}</span></code></pre></div>
@@ -2865,7 +2872,7 @@ tracking.</p>
 <span id="cb8-121"><a href="#cb8-121" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">group_by</span>(.data<span class="sc">$</span>USUBJID, .data<span class="sc">$</span>PARAMCD, .data<span class="sc">$</span>BASETYPE) <span class="sc">%&gt;%</span></span>
 <span id="cb8-122"><a href="#cb8-122" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">BTOXGR =</span> .data<span class="sc">$</span>ATOXGR[.data<span class="sc">$</span>ABLFL <span class="sc">==</span> <span class="st">&quot;Y&quot;</span>]) <span class="sc">%&gt;%</span></span>
 <span id="cb8-123"><a href="#cb8-123" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb8-124"><a href="#cb8-124" tabindex="-1"></a>    <span class="fu">var_relabel</span>(<span class="at">BTOXGR =</span> <span class="st">&quot;Baseline Toxicity Grade&quot;</span>)</span>
+<span id="cb8-124"><a href="#cb8-124" tabindex="-1"></a>    <span class="fu">col_relabel</span>(<span class="at">BTOXGR =</span> <span class="st">&quot;Baseline Toxicity Grade&quot;</span>)</span>
 <span id="cb8-125"><a href="#cb8-125" tabindex="-1"></a></span>
 <span id="cb8-126"><a href="#cb8-126" tabindex="-1"></a>  <span class="co"># High and low descriptions of the different PARAMCD values</span></span>
 <span id="cb8-127"><a href="#cb8-127" tabindex="-1"></a>  <span class="co"># This is currently hard coded as the GDSR does not have these descriptions yet</span></span>
@@ -2936,7 +2943,7 @@ tracking.</p>
 <span id="cb8-192"><a href="#cb8-192" tabindex="-1"></a>      .data<span class="sc">$</span>ADTM,</span>
 <span id="cb8-193"><a href="#cb8-193" tabindex="-1"></a>      .data<span class="sc">$</span>LBSEQ</span>
 <span id="cb8-194"><a href="#cb8-194" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb8-195"><a href="#cb8-195" tabindex="-1"></a>    <span class="fu">var_relabel</span>(<span class="at">LBSEQ =</span> <span class="st">&quot;Lab Test or Examination Sequence Number&quot;</span>)</span>
+<span id="cb8-195"><a href="#cb8-195" tabindex="-1"></a>    <span class="fu">col_relabel</span>(<span class="at">LBSEQ =</span> <span class="st">&quot;Lab Test or Examination Sequence Number&quot;</span>)</span>
 <span id="cb8-196"><a href="#cb8-196" tabindex="-1"></a></span>
 <span id="cb8-197"><a href="#cb8-197" tabindex="-1"></a>  adlb <span class="ot">&lt;-</span> adlb <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">ONTRTFL =</span> <span class="fu">factor</span>(dplyr<span class="sc">::</span><span class="fu">case_when</span>(</span>
 <span id="cb8-198"><a href="#cb8-198" tabindex="-1"></a>    <span class="fu">is.na</span>(.data<span class="sc">$</span>TRTSDTM) <span class="sc">~</span> <span class="st">&quot;&quot;</span>,</span>
@@ -3024,7 +3031,7 @@ tracking.</p>
 <span id="cb8-280"><a href="#cb8-280" tabindex="-1"></a>  tmc_ex_adlb <span class="ot">&lt;-</span> tmc_ex_adlb <span class="sc">%&gt;%</span></span>
 <span id="cb8-281"><a href="#cb8-281" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">CHG =</span> .data<span class="sc">$</span>AVAL <span class="sc">-</span> .data<span class="sc">$</span>BASE) <span class="sc">%&gt;%</span></span>
 <span id="cb8-282"><a href="#cb8-282" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">PCHG =</span> <span class="dv">100</span> <span class="sc">*</span> (.data<span class="sc">$</span>CHG <span class="sc">/</span> .data<span class="sc">$</span>BASE)) <span class="sc">%&gt;%</span></span>
-<span id="cb8-283"><a href="#cb8-283" tabindex="-1"></a>    <span class="fu">var_relabel</span>(</span>
+<span id="cb8-283"><a href="#cb8-283" tabindex="-1"></a>    <span class="fu">col_relabel</span>(</span>
 <span id="cb8-284"><a href="#cb8-284" tabindex="-1"></a>      <span class="at">LBCAT =</span> <span class="st">&quot;Category for Lab Test&quot;</span>,</span>
 <span id="cb8-285"><a href="#cb8-285" tabindex="-1"></a>      <span class="at">ATOXDSCL =</span> <span class="st">&quot;Analysis Toxicity Description Low&quot;</span>,</span>
 <span id="cb8-286"><a href="#cb8-286" tabindex="-1"></a>      <span class="at">ATOXDSCH =</span> <span class="st">&quot;Analysis Toxicity Description High&quot;</span>,</span>
@@ -3035,9 +3042,9 @@ tracking.</p>
 <span id="cb8-291"><a href="#cb8-291" tabindex="-1"></a>    )</span>
 <span id="cb8-292"><a href="#cb8-292" tabindex="-1"></a></span>
 <span id="cb8-293"><a href="#cb8-293" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb8-294"><a href="#cb8-294" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_adlb)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_adlb))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
+<span id="cb8-294"><a href="#cb8-294" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_adlb)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_adlb))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb8-295"><a href="#cb8-295" tabindex="-1"></a>  )</span>
-<span id="cb8-296"><a href="#cb8-296" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_adlb[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb8-296"><a href="#cb8-296" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_adlb[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb8-297"><a href="#cb8-297" tabindex="-1"></a></span>
 <span id="cb8-298"><a href="#cb8-298" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adlb, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adlb.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb8-299"><a href="#cb8-299" tabindex="-1"></a>}</span></code></pre></div>
@@ -3108,7 +3115,7 @@ tracking.</p>
 <span id="cb9-62"><a href="#cb9-62" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">MHSEQ =</span> <span class="fu">seq_len</span>(dplyr<span class="sc">::</span><span class="fu">n</span>())) <span class="sc">%&gt;%</span></span>
 <span id="cb9-63"><a href="#cb9-63" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb9-64"><a href="#cb9-64" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">arrange</span>(.data<span class="sc">$</span>STUDYID, .data<span class="sc">$</span>USUBJID, .data<span class="sc">$</span>ASTDTM) <span class="sc">%&gt;%</span></span>
-<span id="cb9-65"><a href="#cb9-65" tabindex="-1"></a>    <span class="fu">var_relabel</span>(</span>
+<span id="cb9-65"><a href="#cb9-65" tabindex="-1"></a>    <span class="fu">col_relabel</span>(</span>
 <span id="cb9-66"><a href="#cb9-66" tabindex="-1"></a>      <span class="at">MHBODSYS =</span> <span class="st">&quot;Body System or Organ Class&quot;</span>,</span>
 <span id="cb9-67"><a href="#cb9-67" tabindex="-1"></a>      <span class="at">MHDECOD =</span> <span class="st">&quot;Dictionary-Derived Term&quot;</span>,</span>
 <span id="cb9-68"><a href="#cb9-68" tabindex="-1"></a>      <span class="at">MHSOC =</span> <span class="st">&quot;Primary System Organ Class&quot;</span>,</span>
@@ -3116,9 +3123,9 @@ tracking.</p>
 <span id="cb9-70"><a href="#cb9-70" tabindex="-1"></a>    )</span>
 <span id="cb9-71"><a href="#cb9-71" tabindex="-1"></a></span>
 <span id="cb9-72"><a href="#cb9-72" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb9-73"><a href="#cb9-73" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_admh)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_admh))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
+<span id="cb9-73"><a href="#cb9-73" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_admh)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_admh))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb9-74"><a href="#cb9-74" tabindex="-1"></a>  )</span>
-<span id="cb9-75"><a href="#cb9-75" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_admh[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb9-75"><a href="#cb9-75" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_admh[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb9-76"><a href="#cb9-76" tabindex="-1"></a></span>
 <span id="cb9-77"><a href="#cb9-77" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_admh, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_admh.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb9-78"><a href="#cb9-78" tabindex="-1"></a>}</span></code></pre></div>
@@ -3224,9 +3231,9 @@ tracking.</p>
 <span id="cb10-97"><a href="#cb10-97" tabindex="-1"></a>    )</span>
 <span id="cb10-98"><a href="#cb10-98" tabindex="-1"></a></span>
 <span id="cb10-99"><a href="#cb10-99" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb10-100"><a href="#cb10-100" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_adqs)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_adqs))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
+<span id="cb10-100"><a href="#cb10-100" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_adqs)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_adqs))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb10-101"><a href="#cb10-101" tabindex="-1"></a>  )</span>
-<span id="cb10-102"><a href="#cb10-102" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_adqs[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb10-102"><a href="#cb10-102" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_adqs[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb10-103"><a href="#cb10-103" tabindex="-1"></a></span>
 <span id="cb10-104"><a href="#cb10-104" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adqs, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adqs.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb10-105"><a href="#cb10-105" tabindex="-1"></a>}</span></code></pre></div>
@@ -3270,8 +3277,8 @@ tracking.</p>
 <span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a>      avisit <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;SCREENING&quot;</span>, <span class="st">&quot;BASELINE&quot;</span>, <span class="st">&quot;CYCLE 2 DAY 1&quot;</span>, <span class="st">&quot;CYCLE 4 DAY 1&quot;</span>, <span class="st">&quot;END OF INDUCTION&quot;</span>, <span class="st">&quot;FOLLOW UP&quot;</span>)</span>
 <span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a></span>
 <span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a>      <span class="co"># meaningful date information</span></span>
-<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a>      TRTSTDT <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">date</span>(pinfo<span class="sc">$</span>TRTSDTM) <span class="co"># nolint</span></span>
-<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a>      TRTENDT <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">date</span>(dplyr<span class="sc">::</span><span class="fu">if_else</span>( <span class="co"># nolint</span></span>
+<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a>      TRTSTDT <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">date</span>(pinfo<span class="sc">$</span>TRTSDTM) </span>
+<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a>      TRTENDT <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">date</span>(dplyr<span class="sc">::</span><span class="fu">if_else</span>( </span>
 <span id="cb11-40"><a href="#cb11-40" tabindex="-1"></a>        <span class="sc">!</span><span class="fu">is.na</span>(pinfo<span class="sc">$</span>TRTEDTM), pinfo<span class="sc">$</span>TRTEDTM,</span>
 <span id="cb11-41"><a href="#cb11-41" tabindex="-1"></a>        lubridate<span class="sc">::</span><span class="fu">floor_date</span>(TRTSTDT <span class="sc">+</span> study_duration_secs, <span class="at">unit =</span> <span class="st">&quot;day&quot;</span>)</span>
 <span id="cb11-42"><a href="#cb11-42" tabindex="-1"></a>      ))</span>
@@ -3337,9 +3344,9 @@ tracking.</p>
 <span id="cb11-102"><a href="#cb11-102" tabindex="-1"></a>    )</span>
 <span id="cb11-103"><a href="#cb11-103" tabindex="-1"></a></span>
 <span id="cb11-104"><a href="#cb11-104" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb11-105"><a href="#cb11-105" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_adrs)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_adrs))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
+<span id="cb11-105"><a href="#cb11-105" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_adrs)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_adrs))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb11-106"><a href="#cb11-106" tabindex="-1"></a>  )</span>
-<span id="cb11-107"><a href="#cb11-107" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_adrs[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb11-107"><a href="#cb11-107" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_adrs[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb11-108"><a href="#cb11-108" tabindex="-1"></a></span>
 <span id="cb11-109"><a href="#cb11-109" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adrs, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adrs.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb11-110"><a href="#cb11-110" tabindex="-1"></a>}</span></code></pre></div>
@@ -3434,7 +3441,7 @@ tracking.</p>
 <span id="cb12-86"><a href="#cb12-86" tabindex="-1"></a>      .data<span class="sc">$</span>PARAMCD,</span>
 <span id="cb12-87"><a href="#cb12-87" tabindex="-1"></a>      .data<span class="sc">$</span>ADTM</span>
 <span id="cb12-88"><a href="#cb12-88" tabindex="-1"></a>    )</span>
-<span id="cb12-89"><a href="#cb12-89" tabindex="-1"></a>  lbls <span class="ot">&lt;-</span> <span class="fu">var_labels</span>(adtte)</span>
+<span id="cb12-89"><a href="#cb12-89" tabindex="-1"></a>  lbls <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(adtte)</span>
 <span id="cb12-90"><a href="#cb12-90" tabindex="-1"></a></span>
 <span id="cb12-91"><a href="#cb12-91" tabindex="-1"></a>  <span class="co"># adding adverse event counts and log follow-up time</span></span>
 <span id="cb12-92"><a href="#cb12-92" tabindex="-1"></a>  tmc_ex_adtte <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(</span>
@@ -3457,12 +3464,12 @@ tracking.</p>
 <span id="cb12-109"><a href="#cb12-109" tabindex="-1"></a>      .data<span class="sc">$</span>PARAMCD,</span>
 <span id="cb12-110"><a href="#cb12-110" tabindex="-1"></a>      .data<span class="sc">$</span>ADTM</span>
 <span id="cb12-111"><a href="#cb12-111" tabindex="-1"></a>    )</span>
-<span id="cb12-112"><a href="#cb12-112" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_adtte) <span class="ot">&lt;-</span> <span class="fu">c</span>(lbls, <span class="at">lgTMATRSK =</span> <span class="st">&quot;Log Time At Risk&quot;</span>)</span>
+<span id="cb12-112"><a href="#cb12-112" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_adtte) <span class="ot">&lt;-</span> <span class="fu">c</span>(lbls, <span class="at">lgTMATRSK =</span> <span class="st">&quot;Log Time At Risk&quot;</span>)</span>
 <span id="cb12-113"><a href="#cb12-113" tabindex="-1"></a></span>
 <span id="cb12-114"><a href="#cb12-114" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb12-115"><a href="#cb12-115" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_adtte)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_adtte))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
+<span id="cb12-115"><a href="#cb12-115" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_adtte)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_adtte))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb12-116"><a href="#cb12-116" tabindex="-1"></a>  )</span>
-<span id="cb12-117"><a href="#cb12-117" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_adtte[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb12-117"><a href="#cb12-117" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_adtte[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb12-118"><a href="#cb12-118" tabindex="-1"></a></span>
 <span id="cb12-119"><a href="#cb12-119" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_adtte, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_adtte.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb12-120"><a href="#cb12-120" tabindex="-1"></a>}</span></code></pre></div>
@@ -3553,9 +3560,9 @@ tracking.</p>
 <span id="cb13-82"><a href="#cb13-82" tabindex="-1"></a>    )</span>
 <span id="cb13-83"><a href="#cb13-83" tabindex="-1"></a></span>
 <span id="cb13-84"><a href="#cb13-84" tabindex="-1"></a>  i_lbls <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
-<span id="cb13-85"><a href="#cb13-85" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">var_labels</span>(tmc_ex_advs)[<span class="fu">is.na</span>(<span class="fu">var_labels</span>(tmc_ex_advs))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
+<span id="cb13-85"><a href="#cb13-85" tabindex="-1"></a>    <span class="fu">names</span>(<span class="fu">col_labels</span>(tmc_ex_advs)[<span class="fu">is.na</span>(<span class="fu">col_labels</span>(tmc_ex_advs))]), <span class="cf">function</span>(x) <span class="fu">which</span>(<span class="fu">names</span>(common_var_labels) <span class="sc">==</span> x)</span>
 <span id="cb13-86"><a href="#cb13-86" tabindex="-1"></a>  )</span>
-<span id="cb13-87"><a href="#cb13-87" tabindex="-1"></a>  <span class="fu">var_labels</span>(tmc_ex_advs[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
+<span id="cb13-87"><a href="#cb13-87" tabindex="-1"></a>  <span class="fu">col_labels</span>(tmc_ex_advs[<span class="fu">names</span>(i_lbls)]) <span class="ot">&lt;-</span> common_var_labels[i_lbls]</span>
 <span id="cb13-88"><a href="#cb13-88" tabindex="-1"></a></span>
 <span id="cb13-89"><a href="#cb13-89" tabindex="-1"></a>  <span class="fu">save</span>(tmc_ex_advs, <span class="at">file =</span> <span class="st">&quot;data/tmc_ex_advs.rda&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;xz&quot;</span>)</span>
 <span id="cb13-90"><a href="#cb13-90" tabindex="-1"></a>}</span></code></pre></div>

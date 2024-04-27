@@ -65,7 +65,7 @@ get_var_labels <- function(datasets, dataname, vars) {
   lifecycle::deprecate_warn(
     when = "0.8.14",
     what = "get_var_labels()",
-    with = "formatters::var_labels()",
+    with = "teal.data::col_labels()",
     details = "teal.modules.clinical won't export any utility functions except those which
       are necessary to prepare shiny app."
   )
@@ -89,7 +89,7 @@ get_var_labels <- function(datasets, dataname, vars) {
 #'   basic_table() %>%
 #'     split_cols_by(var = "ARMCD") %>%
 #'     test_proportion_diff(
-#'       vars = "rsp", method = "cmh", variables = list(strata = "strat")
+#'       vars = "rsp", method = "cmh", variables = list(strata = "strata")
 #'     ) %>%
 #'     build_table(df = dta)
 #' })
@@ -155,7 +155,7 @@ pipe_expr <- function(exprs, pipe_str = "%>%") {
 #'   lyt,
 #'   substitute(
 #'     test_proportion_diff(
-#'       vars = "rsp", method = "cmh", variables = list(strata = "strat")
+#'       vars = "rsp", method = "cmh", variables = list(strata = "strata")
 #'     )
 #'   )
 #' )
@@ -369,7 +369,7 @@ cs_to_des_filter <- function(cs, dataname, multiple = FALSE, include_vars = FALS
 #'
 #' @export
 #' @return (`logical`)
-is.cs_or_des <- function(x) { # nolint
+is.cs_or_des <- function(x) { # nolint: object_name.
   inherits(x, c("data_extract_spec", "choices_selected"))
 }
 
@@ -464,7 +464,7 @@ split_choices <- function(x) {
 #' @param dataname (`character`)\cr
 #'   `dataname` from data_extract input.
 #'   This might be retrieved like `data_extract_spec(...)[[1]]$dataname`.
-#' @param filter optional, (`logical`)\cr
+#' @param filter (`logical`) optional,\cr
 #'   if the connected `extract_data_spec` has objects passed to its `filter` argument
 #'
 #' @return a string
@@ -943,3 +943,6 @@ set_default_total_label <- function(total_label) {
   checkmate::assert_character(total_label, len = 1, null.ok = TRUE)
   options("tmc_default_total_label" = total_label)
 }
+
+# for mocking in tests
+interactive <- NULL

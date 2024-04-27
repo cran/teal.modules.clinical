@@ -1,10 +1,15 @@
-## ----setup, eval=FALSE--------------------------------------------------------
+## ----include=FALSE------------------------------------------------------------
+knitr::opts_template$set(
+  remove_linter_comments = list(tidy = function(code, ...) gsub(pattern = "#\\s?nolint.*", replacement = "", code))
+)
+
+## ----setup, eval=FALSE, opts.label=c("remove_linter_comments")----------------
 #  library(dplyr)
-#  library(formatters)
+#  library(teal.data)
 #  
 #  study_duration_secs <- lubridate::seconds(lubridate::years(2))
 #  
-#  sample_fct <- function(x, N, ...) { # nolint
+#  sample_fct <- function(x, N, ...) { # nolint: object_name.
 #    checkmate::assert_number(N)
 #    factor(sample(x, N, replace = TRUE, ...), levels = if (is.factor(x)) levels(x) else x)
 #  }
@@ -81,6 +86,11 @@
 #  
 #  str_extract <- function(string, pattern) regmatches(string, gregexpr(pattern, string))
 #  
+#  with_label <- function(x, label) {
+#    attr(x, "label") <- as.vector(label)
+#    x
+#  }
+#  
 #  common_var_labels <- c(
 #    USUBJID = "Unique Subject Identifier",
 #    STUDYID = "Study Identifier",
@@ -118,8 +128,8 @@
 #    WORS02FL = "Worst Post-Baseline Observation"
 #  )
 
-## ----adsl, eval=FALSE---------------------------------------------------------
-#  generate_adsl <- function(N = 200) { # nolint
+## ----adsl, eval=FALSE, opts.label=c("remove_linter_comments")-----------------
+#  generate_adsl <- function(N = 200) { # nolint: object_name.
 #    set.seed(1)
 #    sys_dtm <- lubridate::fast_strptime("20/2/2019 11:16:16.683", "%d/%m/%Y %H:%M:%OS", tz = "UTC")
 #    country_site_prob <- c(.5, .121, .077, .077, .075, .052, .046, .025, .014, .003)
@@ -176,8 +186,10 @@
 #        )) %>% with_label("Geographic Region 1"),
 #        SAFFL = factor("Y") %>% with_label("Safety Population Flag")
 #      ) %>%
-#      dplyr::mutate(USUBJID = paste(.data$STUDYID, .data$SITEID, .data$SUBJID, sep = "-") %>%
-#        with_label("Unique Subject Identifier"))
+#      dplyr::mutate(
+#        USUBJID = paste(.data$STUDYID, .data$SITEID, .data$SUBJID, sep = "-") %>%
+#          with_label("Unique Subject Identifier")
+#      )
 #  
 #    # disposition related variables
 #    # using probability of 1 for the "DEATH" level to ensure at least one death record exists
@@ -374,7 +386,7 @@
 #          as.character(sample_fct(actions, nrow(adae), prob = c(0.05, 0.05, 0.05, 0.01, 0.05, 0.1, 0.45, 0.1, 0.05)))
 #        )) %>% with_label("Action Taken With Study Treatment")
 #      ) %>%
-#      var_relabel(
+#      col_relabel(
 #        AEBODSYS = "Body System or Organ Class",
 #        AELLT = "Lowest Level Term",
 #        AEDECOD = "Dictionary-Derived Term",
@@ -394,9 +406,9 @@
 #      )
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_adae)[is.na(var_labels(tmc_ex_adae))]), function(x) which(names(common_var_labels) == x)
+#      names(col_labels(tmc_ex_adae)[is.na(col_labels(tmc_ex_adae))]), function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_adae[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_adae[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_adae, file = "data/tmc_ex_adae.rda", compress = "xz")
 #  }
@@ -565,10 +577,10 @@
 #      )
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_adaette)[is.na(var_labels(tmc_ex_adaette))]),
+#      names(col_labels(tmc_ex_adaette)[is.na(col_labels(tmc_ex_adaette))]),
 #      function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_adaette[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_adaette[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_adaette, file = "data/tmc_ex_adaette.rda", compress = "xz")
 #  }
@@ -663,7 +675,7 @@
 #          "Q4H", "QD", "TID", "4 TIMES PER MONTH"
 #        ), dplyr::n(), replace = TRUE) %>% with_label("Dosing Frequency per Interval")
 #      ) %>%
-#      var_relabel(
+#      col_relabel(
 #        CMCLAS = "Medication Class",
 #        CMDECOD = "Standardized Medication Name",
 #        ATIREL = "Time Relation of Medication",
@@ -671,9 +683,9 @@
 #      )
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_adcm)[is.na(var_labels(tmc_ex_adcm))]), function(x) which(names(common_var_labels) == x)
+#      names(col_labels(tmc_ex_adcm)[is.na(col_labels(tmc_ex_adcm))]), function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_adcm[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_adcm[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_adcm, file = "data/tmc_ex_adcm.rda", compress = "xz")
 #  }
@@ -846,13 +858,13 @@
 #      return(data)
 #    }
 #  
-#    lbls <- var_labels(adeg)
+#    lbls <- col_labels(adeg)
 #    adeg <- rbind(adeg, get_groups(adeg, TRUE), get_groups(adeg, FALSE)) %>%
 #      dplyr::arrange(.data$row_check) %>%
 #      dplyr::group_by(.data$USUBJID, .data$PARAMCD, .data$BASETYPE) %>%
 #      dplyr::arrange(.data$AVISIT, .by_group = TRUE) %>%
 #      dplyr::ungroup()
-#    var_labels(adeg) <- lbls
+#    col_labels(adeg) <- lbls
 #  
 #    adeg <- adeg[, -which(names(adeg) %in% c("row_check"))]
 #    flag_variables <- function(data, worst_obs) {
@@ -920,12 +932,12 @@
 #        as.character(.data$BASE)
 #      )) %>%
 #      dplyr::ungroup() %>%
-#      var_relabel(BASEC = "Baseline Character Value")
+#      col_relabel(BASEC = "Baseline Character Value")
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_adeg)[is.na(var_labels(tmc_ex_adeg))]), function(x) which(names(common_var_labels) == x)
+#      names(col_labels(tmc_ex_adeg)[is.na(col_labels(tmc_ex_adeg))]), function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_adeg[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_adeg[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_adeg, file = "data/tmc_ex_adeg.rda", compress = "xz")
 #  }
@@ -1113,7 +1125,7 @@
 #        .data$ASTDTM,
 #        .data$AVISITN
 #      ) %>%
-#      var_relabel(
+#      col_relabel(
 #        PARCAT1 = "Parameter Category (Individual/Overall)",
 #        PARCAT2 = "Parameter Category (Drug A/Drug B)",
 #        EXSEQ = "Analysis Sequence Number"
@@ -1129,9 +1141,9 @@
 #      dplyr::distinct(USUBJID, .keep_all = TRUE)
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_adex)[is.na(var_labels(tmc_ex_adex))]), function(x) which(names(common_var_labels) == x)
+#      names(col_labels(tmc_ex_adex)[is.na(col_labels(tmc_ex_adex))]), function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_adex[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_adex[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_adex, file = "data/tmc_ex_adex.rda", compress = "xz")
 #  }
@@ -1260,7 +1272,7 @@
 #      dplyr::group_by(.data$USUBJID, .data$PARAMCD, .data$BASETYPE) %>%
 #      dplyr::mutate(BTOXGR = .data$ATOXGR[.data$ABLFL == "Y"]) %>%
 #      dplyr::ungroup() %>%
-#      var_relabel(BTOXGR = "Baseline Toxicity Grade")
+#      col_relabel(BTOXGR = "Baseline Toxicity Grade")
 #  
 #    # High and low descriptions of the different PARAMCD values
 #    # This is currently hard coded as the GDSR does not have these descriptions yet
@@ -1331,7 +1343,7 @@
 #        .data$ADTM,
 #        .data$LBSEQ
 #      ) %>%
-#      var_relabel(LBSEQ = "Lab Test or Examination Sequence Number")
+#      col_relabel(LBSEQ = "Lab Test or Examination Sequence Number")
 #  
 #    adlb <- adlb %>% dplyr::mutate(ONTRTFL = factor(dplyr::case_when(
 #      is.na(.data$TRTSDTM) ~ "",
@@ -1419,7 +1431,7 @@
 #    tmc_ex_adlb <- tmc_ex_adlb %>%
 #      dplyr::mutate(CHG = .data$AVAL - .data$BASE) %>%
 #      dplyr::mutate(PCHG = 100 * (.data$CHG / .data$BASE)) %>%
-#      var_relabel(
+#      col_relabel(
 #        LBCAT = "Category for Lab Test",
 #        ATOXDSCL = "Analysis Toxicity Description Low",
 #        ATOXDSCH = "Analysis Toxicity Description High",
@@ -1430,9 +1442,9 @@
 #      )
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_adlb)[is.na(var_labels(tmc_ex_adlb))]), function(x) which(names(common_var_labels) == x)
+#      names(col_labels(tmc_ex_adlb)[is.na(col_labels(tmc_ex_adlb))]), function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_adlb[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_adlb[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_adlb, file = "data/tmc_ex_adlb.rda", compress = "xz")
 #  }
@@ -1502,7 +1514,7 @@
 #      dplyr::mutate(MHSEQ = seq_len(dplyr::n())) %>%
 #      dplyr::ungroup() %>%
 #      dplyr::arrange(.data$STUDYID, .data$USUBJID, .data$ASTDTM) %>%
-#      var_relabel(
+#      col_relabel(
 #        MHBODSYS = "Body System or Organ Class",
 #        MHDECOD = "Dictionary-Derived Term",
 #        MHSOC = "Primary System Organ Class",
@@ -1510,9 +1522,9 @@
 #      )
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_admh)[is.na(var_labels(tmc_ex_admh))]), function(x) which(names(common_var_labels) == x)
+#      names(col_labels(tmc_ex_admh)[is.na(col_labels(tmc_ex_admh))]), function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_admh[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_admh[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_admh, file = "data/tmc_ex_admh.rda", compress = "xz")
 #  }
@@ -1617,14 +1629,14 @@
 #      )
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_adqs)[is.na(var_labels(tmc_ex_adqs))]), function(x) which(names(common_var_labels) == x)
+#      names(col_labels(tmc_ex_adqs)[is.na(col_labels(tmc_ex_adqs))]), function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_adqs[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_adqs[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_adqs, file = "data/tmc_ex_adqs.rda", compress = "xz")
 #  }
 
-## ----adrs, eval=FALSE---------------------------------------------------------
+## ----adrs, eval=FALSE, opts.label=c("remove_linter_comments")-----------------
 #  generate_adrs <- function(adsl = tmc_ex_adsl) {
 #    set.seed(1)
 #    param_codes <- stats::setNames(1:5, c("CR", "PR", "SD", "PD", "NE"))
@@ -1662,8 +1674,8 @@
 #        avisit <- c("SCREENING", "BASELINE", "CYCLE 2 DAY 1", "CYCLE 4 DAY 1", "END OF INDUCTION", "FOLLOW UP")
 #  
 #        # meaningful date information
-#        TRTSTDT <- lubridate::date(pinfo$TRTSDTM) # nolint
-#        TRTENDT <- lubridate::date(dplyr::if_else( # nolint
+#        TRTSTDT <- lubridate::date(pinfo$TRTSDTM) # nolint: object_name.
+#        TRTENDT <- lubridate::date(dplyr::if_else( # nolint: object_name.
 #          !is.na(pinfo$TRTEDTM), pinfo$TRTEDTM,
 #          lubridate::floor_date(TRTSTDT + study_duration_secs, unit = "day")
 #        ))
@@ -1729,9 +1741,9 @@
 #      )
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_adrs)[is.na(var_labels(tmc_ex_adrs))]), function(x) which(names(common_var_labels) == x)
+#      names(col_labels(tmc_ex_adrs)[is.na(col_labels(tmc_ex_adrs))]), function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_adrs[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_adrs[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_adrs, file = "data/tmc_ex_adrs.rda", compress = "xz")
 #  }
@@ -1825,7 +1837,7 @@
 #        .data$PARAMCD,
 #        .data$ADTM
 #      )
-#    lbls <- var_labels(adtte)
+#    lbls <- col_labels(adtte)
 #  
 #    # adding adverse event counts and log follow-up time
 #    tmc_ex_adtte <- dplyr::bind_rows(
@@ -1848,12 +1860,12 @@
 #        .data$PARAMCD,
 #        .data$ADTM
 #      )
-#    var_labels(tmc_ex_adtte) <- c(lbls, lgTMATRSK = "Log Time At Risk")
+#    col_labels(tmc_ex_adtte) <- c(lbls, lgTMATRSK = "Log Time At Risk")
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_adtte)[is.na(var_labels(tmc_ex_adtte))]), function(x) which(names(common_var_labels) == x)
+#      names(col_labels(tmc_ex_adtte)[is.na(col_labels(tmc_ex_adtte))]), function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_adtte[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_adtte[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_adtte, file = "data/tmc_ex_adtte.rda", compress = "xz")
 #  }
@@ -1943,9 +1955,9 @@
 #      )
 #  
 #    i_lbls <- sapply(
-#      names(var_labels(tmc_ex_advs)[is.na(var_labels(tmc_ex_advs))]), function(x) which(names(common_var_labels) == x)
+#      names(col_labels(tmc_ex_advs)[is.na(col_labels(tmc_ex_advs))]), function(x) which(names(common_var_labels) == x)
 #    )
-#    var_labels(tmc_ex_advs[names(i_lbls)]) <- common_var_labels[i_lbls]
+#    col_labels(tmc_ex_advs[names(i_lbls)]) <- common_var_labels[i_lbls]
 #  
 #    save(tmc_ex_advs, file = "data/tmc_ex_advs.rda", compress = "xz")
 #  }
