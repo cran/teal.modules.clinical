@@ -7,9 +7,10 @@
 tm_g_lineplot(
   label,
   dataname,
-  parentname = ifelse(inherits(strata, "data_extract_spec"),
-    teal.transform::datanames_input(strata), "ADSL"),
-  strata = teal.transform::choices_selected(teal.transform::variable_choices(parentname,
+  parentname = NULL,
+  strata = lifecycle::deprecated(),
+  group_var =
+    teal.transform::choices_selected(teal.transform::variable_choices(parentname,
     c("ARM", "ARMCD", "ACTARMCD")), "ARM"),
   x = teal.transform::choices_selected(teal.transform::variable_choices(dataname,
     "AVISIT"), "AVISIT", fixed = TRUE),
@@ -34,7 +35,9 @@ tm_g_lineplot(
   plot_width = NULL,
   pre_output = NULL,
   post_output = NULL,
-  ggplot2_args = teal.widgets::ggplot2_args()
+  ggplot2_args = teal.widgets::ggplot2_args(),
+  transformators = list(),
+  decorators = list()
 )
 }
 \arguments{
@@ -44,9 +47,11 @@ tm_g_lineplot(
 
 \item{parentname}{(\code{character})\cr parent analysis data used in teal module, usually this refers to \code{ADSL}.}
 
-\item{strata}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} use the \code{group_var} parameter instead.}
+\item{strata}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Please use the \code{group_var} argument instead.}
 
-\item{x}{(\code{string})\cr x-variable name.}
+\item{group_var}{(\code{string} or \code{NA})\cr group variable name.}
+
+\item{x}{(\code{teal_module} or \code{teal_modules}) Object to format/print.}
 
 \item{y}{(\code{string})\cr y-variable name.}
 
@@ -103,6 +108,16 @@ account. The argument is merged with option \code{teal.ggplot2_args} and with de
 the module body).
 
 For more details, see the vignette: \code{vignette("custom-ggplot2-arguments", package = "teal.widgets")}.}
+
+\item{transformators}{(\code{list} of \code{teal_transform_module}) that will be applied to transform module's data input.
+To learn more check \code{vignette("transform-input-data", package = "teal")}.}
+
+\item{decorators}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+(named \code{list} of lists of \code{teal_transform_module}) optional,
+decorator for tables or plots included in the module output reported.
+The decorators are applied to the respective output objects.
+
+See section "Decorating Module" below for more details.}
 }
 \value{
 a \code{teal_module} object.
@@ -110,28 +125,56 @@ a \code{teal_module} object.
 \description{
 This module produces a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} type line plot, with optional summary table, for standard ADaM data.
 }
+\section{Decorating Module}{
+
+
+This module generates the following objects, which can be modified in place using decorators:
+\itemize{
+\item \code{plot} (\code{ggplot})
+}
+
+A Decorator is applied to the specific output using a named list of \code{teal_transform_module} objects.
+The name of this list corresponds to the name of the output to which the decorator is applied.
+See code snippet below:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{tm_g_lineplot(
+   ..., # arguments for module
+   decorators = list(
+     plot = teal_transform_module(...) # applied only to `plot` output
+   )
+)
+}\if{html}{\out{</div>}}
+
+For additional details and examples of decorators, refer to the vignette
+\code{vignette("decorate-module-output", package = "teal.modules.clinical")}.
+
+To learn more please refer to the vignette
+\code{vignette("transform-module-output", package = "teal")} or the \code{\link[teal:teal_transform_module]{teal::teal_transform_module()}} documentation.
+}
+
 \examples{
 library(nestcolor)
 library(dplyr)
 library(forcats)
 
-ADSL <- tmc_ex_adsl
-ADLB <- tmc_ex_adlb \%>\% mutate(AVISIT == fct_reorder(AVISIT, AVISITN, min))
+data <- teal_data()
+data <- within(data, {
+  ADSL <- tmc_ex_adsl
+  ADLB <- tmc_ex_adlb \%>\%
+    mutate(AVISIT == fct_reorder(AVISIT, AVISITN, min))
+})
+join_keys(data) <- default_cdisc_join_keys[names(data)]
+
+ADSL <- data[["ADSL"]]
+ADLB <- data[["ADLB"]]
 
 app <- init(
-  data = cdisc_data(
-    ADSL = ADSL,
-    ADLB = ADLB,
-    code = "
-      ADSL <- tmc_ex_adsl
-      ADLB <- tmc_ex_adlb \%>\% mutate(AVISIT == fct_reorder(AVISIT, AVISITN, min))
-    "
-  ),
+  data = data,
   modules = modules(
     tm_g_lineplot(
       label = "Line Plot",
       dataname = "ADLB",
-      strata = choices_selected(
+      group_var = choices_selected(
         variable_choices(ADSL, c("ARM", "ARMCD", "ACTARMCD")),
         "ARM"
       ),
@@ -155,3 +198,13 @@ if (interactive()) {
 The \href{https://insightsengineering.github.io/tlg-catalog/stable/}{TLG Catalog} where additional example
 apps implementing this module can be found.
 }
+\section{Examples in Shinylive}{
+\describe{
+  \item{example-1}{
+    \href{https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMBOhFoFuASgA60snGYFStAG5wABAB4AtDoBmgiOtol2cnQBUsAVQCiSpXSYsOEMaWLUijIoQ7sxs7Pyo1KyBbgyhHMYBsqSiQUr8UKRQ+kZc1AD6GVnW6ZnZhjoA7rSkABa0EOFluDogSjo6AIIAIgDKADI5OqQwBPlwAB75UPyi1O1d3f0AQkMjY5PT-NT0OgCkAHx7Cx0wglnk7J0AagCSvbe2OgC8zybq+YxwAfyqV3cPWwtG73R4AORaMAaciCAF8ggArIgNfIAazgrFETSyNgqv2MUGEpHyBH4tFEYyRKPRmOA0HgWKKUDkAF1XBAegMhkzgMAFGBOf1+Sy2Rylqs8WVefyeithaKlGhUEMGjV2AsmS8dEzcAs+EIRKItfrhGJ1RAOh0RvkAOb5KRwSJEUjmy2W6hQehwaha-n9Bq6AAK-lI-N1Frd2rK9N0bxl4rDJ0tNsYREEqHymhYWoItWRBDE+VE3rg6jg-FdkY6WcYtE9IhJeZkZsFLQI6oFWAAsmGdDLuwBhbq9mUD2ydQfDsAw8NVjr9ntgJMdOSzyOsHNNguiIslssV5eWmt1+gN3P5lvitsdm6dIV4PtgZadXouB-8gcACQA4iOwIGv1-adV0PecBWuO9+UPECIzdVAWFgTcLx3YsRH3SsqyzahBDgRtkKuK9H0DCdOi7Ic-2IrBSP5GC50fO9bCg2DLSCN1WJ0IIgloYwdHYBpyDUDRtGsGw2gjUR6ggVhOnQdglQAEkEWgWgU4tGG0GIIFhJQwFhFkgA}{Open in Shinylive}
+    \if{html}{\out{<iframe class="iframe_shinylive" src="https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMBOhFoFuASgA60snGYFStAG5wABAB4AtDoBmgiOtol2cnQBUsAVQCiSpXSYsOEMaWLUijIoQ7sxs7Pyo1KyBbgyhHMYBsqSiQUr8UKRQ+kZc1AD6GVnW6ZnZhjoA7rSkABa0EOFluDogSjo6AIIAIgDKADI5OqQwBPlwAB75UPyi1O1d3f0AQkMjY5PT-NT0OgCkAHx7Cx0wglnk7J0AagCSvbe2OgC8zybq+YxwAfyqV3cPWwtG73R4AORaMAaciCAF8ggArIgNfIAazgrFETSyNgqv2MUGEpHyBH4tFEYyRKPRmOA0HgWKKUDkAF1XBAegMhkzgMAFGBOf1+Sy2Rylqs8WVefyeithaKlGhUEMGjV2AsmS8dEzcAs+EIRKItfrhGJ1RAOh0RvkAOb5KRwSJEUjmy2W6hQehwaha-n9Bq6AAK-lI-N1Frd2rK9N0bxl4rDJ0tNsYREEqHymhYWoItWRBDE+VE3rg6jg-FdkY6WcYtE9IhJeZkZsFLQI6oFWAAsmGdDLuwBhbq9mUD2ydQfDsAw8NVjr9ntgJMdOSzyOsHNNguiIslssV5eWmt1+gN3P5lvitsdm6dIV4PtgZadXouB-8gcACQA4iOwIGv1-adV0PecBWuO9+UPECIzdVAWFgTcLx3YsRH3SsqyzahBDgRtkKuK9H0DCdOi7Ic-2IrBSP5GC50fO9bCg2DLSCN1WJ0IIgloYwdHYBpyDUDRtGsGw2gjUR6ggVhOnQdglQAEkEWgWgU4tGG0GIIFhJQwFhFkgA" style="height: 800px; width: 100vw; max-width: 1400px; border: 1px solid rgba(0,0,0,0.175); border-radius: .375rem; position: absolute; left: 50\%; margin-top: 30px; transform: translateX(-50\%); z-index: 1"></iframe>}}
+    \if{html}{\out{<a style='height: 800px; display: block;'></a>}}
+  }
+}
+}
+

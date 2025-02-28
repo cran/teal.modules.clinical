@@ -11,7 +11,7 @@
 
 <meta name="author" content="NEST CoreDev Team" />
 
-<meta name="date" content="2024-04-26" />
+<meta name="date" content="2025-02-28" />
 
 <title>Getting Started with {teal.modules.clinical}</title>
 
@@ -353,7 +353,7 @@ display: none;
 <h1 class="title toc-ignore">Getting Started with
 {teal.modules.clinical}</h1>
 <h4 class="author">NEST CoreDev Team</h4>
-<h4 class="date">2024-04-26</h4>
+<h4 class="date">2025-02-28</h4>
 
 </div>
 
@@ -442,7 +442,11 @@ app &lt;- init(
   )
 )
 
-if (interactive()) shinyApp(app$ui, app$server)</code></pre>
+shinyApp(app$ui, app$server)</code></pre>
+<div id="try-it-out-in-shinylive" class="section level4">
+<h4>Try it out in Shinylive</h4>
+<p><a href="https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMBOhFoFuASgA6EOkxYcIY0sWpFGiiEoCCAEQDKAGQAEAHgC0l0jAIB9OAA9nUfqOpHjhgFEbe0cXd09+KDglJTRUYMtaaVJ2JUtLSNIoSwBeSwJ+WlEXTKhUiHT0kwtcy2rzXDTKk0DaloDGisrifjhahTAmyrqzKzsHJ1cPLx8h5v8g8dCpiKi5gaa5TvS+IRFRWrpRFLnHZwBzZ3oWAgALFlJnUVoYVBFy4fTqKHo4an6wO06tBqKxnqIBttPm5aqUpqRmARHqJUHACB9PulStB4AD2pC5sNRH80aRasSREinqj0YTPnciDIxLUAG4sWg-ETOBlM0QYzHDdpQgXdfkiyoDQxYACykMskoAwgAVKWyvDysCmAIADQJXXFErAWEMCoCcoGpkMADEreZzZqlcaVQAmDb68X6A1bOlEklIuD8PHK1V6g0wYSkWhvPp5K2Gcxan2WT2fFPpFP6fRKUS3JKsQzodhxAAkglouEsJeJjBZcD0YAAvgBdIA">Open
+in Shinylive</a></p>
 <p>Consider consulting the documentation and examples of each module
 (e.g. <code>?tm_g_barchart_simple</code>). In many, you can also find
 useful links to the <a href="https://insightsengineering.github.io/tlg-catalog/stable/">TLG
@@ -505,7 +509,7 @@ include only one module: <code>tm_g_barchart_simple()</code>.</p>
   )
 )</code></pre>
 <p>Finally, we use <code>shiny</code> to launch the application:</p>
-<pre class="r"><code>if (interactive()) shinyApp(app$ui, app$server)</code></pre>
+<pre class="r"><code>shinyApp(app$ui, app$server)</code></pre>
 <p>Some <code>teal.modules.clinical</code> modules allow for the
 specification of arguments using
 <code>teal.transform::choices_selected()</code>, such as the
@@ -527,10 +531,11 @@ app &lt;- init(
   )
 )
 
-if (interactive()) shinyApp(app$ui, app$server)</code></pre>
+shinyApp(app$ui, app$server)</code></pre>
 <p>Please refer to the <a href="https://insightsengineering.github.io/teal.modules.clinical/latest-tag/reference/">API
 reference</a> of specific modules for more examples and information on
 the customization options available.</p>
+</div>
 </div>
 
 

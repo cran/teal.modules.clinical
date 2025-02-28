@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2024-04-26" />
+<meta name="date" content="2025-02-28" />
 
 <title>Example Data Generation</title>
 
@@ -1321,6 +1321,7 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -1578,7 +1579,7 @@ border-radius: 0px;
 
 
 <h1 class="title toc-ignore">Example Data Generation</h1>
-<h4 class="date">2024-04-26</h4>
+<h4 class="date">2025-02-28</h4>
 
 </div>
 
@@ -1620,7 +1621,7 @@ tracking.</p>
 <span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>    ))</span>
 <span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>    <span class="fu">return</span>(<span class="cn">NA</span>)</span>
 <span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>  }</span>
-<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="st">&quot;relvar1&quot;</span> <span class="ot">=</span> relvar1, <span class="st">&quot;relvar2&quot;</span> <span class="ot">=</span> relvar2))</span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>  <span class="fu">List</span>(<span class="st">&quot;relvar1&quot;</span> <span class="ot">=</span> relvar1, <span class="st">&quot;relvar2&quot;</span> <span class="ot">=</span> relvar2)</span>
 <span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>}</span>
 <span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a></span>
 <span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a>rel_var <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">df =</span> <span class="cn">NULL</span>, <span class="at">var_name =</span> <span class="cn">NULL</span>, <span class="at">var_values =</span> <span class="cn">NULL</span>, <span class="at">related_var =</span> <span class="cn">NULL</span>) {</span>
@@ -1646,8 +1647,8 @@ tracking.</p>
 <span id="cb1-47"><a href="#cb1-47" tabindex="-1"></a>}</span>
 <span id="cb1-48"><a href="#cb1-48" tabindex="-1"></a></span>
 <span id="cb1-49"><a href="#cb1-49" tabindex="-1"></a>visit_schedule <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">visit_format =</span> <span class="st">&quot;WEEK&quot;</span>,</span>
-<span id="cb1-50"><a href="#cb1-50" tabindex="-1"></a>                           <span class="at">n_assessments =</span> 10L,</span>
-<span id="cb1-51"><a href="#cb1-51" tabindex="-1"></a>                           <span class="at">n_days =</span> 5L) {</span>
+<span id="cb1-50"><a href="#cb1-50" tabindex="-1"></a>                           <span class="at">n_assessments =</span> <span class="dv">10</span><span class="dt">L</span>,</span>
+<span id="cb1-51"><a href="#cb1-51" tabindex="-1"></a>                           <span class="at">n_days =</span> <span class="dv">5</span><span class="dt">L</span>) {</span>
 <span id="cb1-52"><a href="#cb1-52" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span>(<span class="fu">toupper</span>(visit_format) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;WEEK&quot;</span>, <span class="st">&quot;CYCLE&quot;</span>))) {</span>
 <span id="cb1-53"><a href="#cb1-53" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">&quot;Visit format value must either be: WEEK or CYCLE&quot;</span>)</span>
 <span id="cb1-54"><a href="#cb1-54" tabindex="-1"></a>    <span class="fu">return</span>(<span class="cn">NA</span>)</span>
@@ -2184,7 +2185,7 @@ tracking.</p>
 <div id="adcm" class="section level2">
 <h2><code>ADCM</code></h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>generate_adcm <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">adsl =</span> tmc_ex_adsl,</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                          <span class="at">max_n_cms =</span> 5L) {</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                          <span class="at">max_n_cms =</span> <span class="dv">5</span><span class="dt">L</span>) {</span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  lookup_cm <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tribble</span>(</span>
 <span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>    <span class="sc">~</span>CMCLAS, <span class="sc">~</span>CMDECOD, <span class="sc">~</span>ATIREL,</span>
@@ -2290,9 +2291,9 @@ tracking.</p>
 <div id="adeg" class="section level2">
 <h2><code>ADEG</code></h2>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>generate_adeg <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">adsl =</span> tmc_ex_adsl,</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>                          <span class="at">n_assessments =</span> 3L,</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>                          <span class="at">n_days =</span> 3L,</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>                          <span class="at">max_n_eg =</span> 3L) {</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>                          <span class="at">n_assessments =</span> <span class="dv">3</span><span class="dt">L</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>                          <span class="at">n_days =</span> <span class="dv">3</span><span class="dt">L</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>                          <span class="at">max_n_eg =</span> <span class="dv">3</span><span class="dt">L</span>) {</span>
 <span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  param <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;QT Duration&quot;</span>, <span class="st">&quot;RR Duration&quot;</span>, <span class="st">&quot;Heart Rate&quot;</span>, <span class="st">&quot;ECG Interpretation&quot;</span>)</span>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  paramcd <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;QT&quot;</span>, <span class="st">&quot;RR&quot;</span>, <span class="st">&quot;HR&quot;</span>, <span class="st">&quot;ECGINTP&quot;</span>)</span>
@@ -2453,7 +2454,7 @@ tracking.</p>
 <span id="cb6-162"><a href="#cb6-162" tabindex="-1"></a>      } <span class="sc">%&gt;%</span></span>
 <span id="cb6-163"><a href="#cb6-163" tabindex="-1"></a>      dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-164"><a href="#cb6-164" tabindex="-1"></a>      dplyr<span class="sc">::</span><span class="fu">ungroup</span>()</span>
-<span id="cb6-165"><a href="#cb6-165" tabindex="-1"></a>    <span class="fu">return</span>(data)</span>
+<span id="cb6-165"><a href="#cb6-165" tabindex="-1"></a>    data</span>
 <span id="cb6-166"><a href="#cb6-166" tabindex="-1"></a>  }</span>
 <span id="cb6-167"><a href="#cb6-167" tabindex="-1"></a></span>
 <span id="cb6-168"><a href="#cb6-168" tabindex="-1"></a>  lbls <span class="ot">&lt;-</span> <span class="fu">col_labels</span>(adeg)</span>
@@ -2517,7 +2518,7 @@ tracking.</p>
 <span id="cb6-226"><a href="#cb6-226" tabindex="-1"></a>    data_compare<span class="sc">$</span>new_var <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(data_compare<span class="sc">$</span>row_check <span class="sc">%in%</span> data<span class="sc">$</span>row_check, <span class="st">&quot;Y&quot;</span>, <span class="st">&quot;&quot;</span>)</span>
 <span id="cb6-227"><a href="#cb6-227" tabindex="-1"></a>    data_compare <span class="ot">&lt;-</span> data_compare[, <span class="sc">-</span><span class="fu">which</span>(<span class="fu">names</span>(data_compare) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;row_check&quot;</span>))]</span>
 <span id="cb6-228"><a href="#cb6-228" tabindex="-1"></a></span>
-<span id="cb6-229"><a href="#cb6-229" tabindex="-1"></a>    <span class="fu">return</span>(data_compare)</span>
+<span id="cb6-229"><a href="#cb6-229" tabindex="-1"></a>    data_compare</span>
 <span id="cb6-230"><a href="#cb6-230" tabindex="-1"></a>  }</span>
 <span id="cb6-231"><a href="#cb6-231" tabindex="-1"></a>  adeg <span class="ot">&lt;-</span> <span class="fu">flag_variables</span>(adeg, <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">WORS01FL =</span> <span class="st">&quot;new_var&quot;</span>)</span>
 <span id="cb6-232"><a href="#cb6-232" tabindex="-1"></a>  adeg <span class="ot">&lt;-</span> <span class="fu">flag_variables</span>(adeg, <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">WORS02FL =</span> <span class="st">&quot;new_var&quot;</span>)</span>
@@ -2543,9 +2544,9 @@ tracking.</p>
 <div id="adex" class="section level2">
 <h2><code>ADEX</code></h2>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>generate_adex <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">adsl =</span> tmc_ex_adsl,</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>                          <span class="at">n_assessments =</span> 3L,</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>                          <span class="at">n_days =</span> 3L,</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>                          <span class="at">max_n_exs =</span> 3L) {</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>                          <span class="at">n_assessments =</span> <span class="dv">3</span><span class="dt">L</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>                          <span class="at">n_days =</span> <span class="dv">3</span><span class="dt">L</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>                          <span class="at">max_n_exs =</span> <span class="dv">3</span><span class="dt">L</span>) {</span>
 <span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  param <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
 <span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>    <span class="st">&quot;Dose administered during constant dosing interval&quot;</span>,</span>
@@ -2750,9 +2751,9 @@ tracking.</p>
 <div id="adlb" class="section level2">
 <h2><code>ADLB</code></h2>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>generate_adlb <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">adsl =</span> tmc_ex_adsl,</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>                          <span class="at">n_assessments =</span> 3L,</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>                          <span class="at">n_days =</span> 3L,</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>                          <span class="at">max_n_lbs =</span> 3L) {</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>                          <span class="at">n_assessments =</span> <span class="dv">3</span><span class="dt">L</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>                          <span class="at">n_days =</span> <span class="dv">3</span><span class="dt">L</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>                          <span class="at">max_n_lbs =</span> <span class="dv">3</span><span class="dt">L</span>) {</span>
 <span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  lbcat <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;CHEMISTRY&quot;</span>, <span class="st">&quot;CHEMISTRY&quot;</span>, <span class="st">&quot;IMMUNOLOGY&quot;</span>)</span>
 <span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  param <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
@@ -3003,7 +3004,7 @@ tracking.</p>
 <span id="cb8-252"><a href="#cb8-252" tabindex="-1"></a></span>
 <span id="cb8-253"><a href="#cb8-253" tabindex="-1"></a>    data_compare<span class="sc">$</span>new_var <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(data_compare<span class="sc">$</span>row_check <span class="sc">%in%</span> data<span class="sc">$</span>row_check, <span class="st">&quot;Y&quot;</span>, <span class="st">&quot;&quot;</span>)</span>
 <span id="cb8-254"><a href="#cb8-254" tabindex="-1"></a>    data_compare <span class="ot">&lt;-</span> data_compare[, <span class="sc">-</span><span class="fu">which</span>(<span class="fu">names</span>(data_compare) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;row_check&quot;</span>))]</span>
-<span id="cb8-255"><a href="#cb8-255" tabindex="-1"></a>    <span class="fu">return</span>(data_compare)</span>
+<span id="cb8-255"><a href="#cb8-255" tabindex="-1"></a>    data_compare</span>
 <span id="cb8-256"><a href="#cb8-256" tabindex="-1"></a>  }</span>
 <span id="cb8-257"><a href="#cb8-257" tabindex="-1"></a>  adlb <span class="ot">&lt;-</span> <span class="fu">flag_variables</span>(adlb, <span class="cn">TRUE</span>, <span class="st">&quot;ELSE&quot;</span>, <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">WORS01FL =</span> <span class="st">&quot;new_var&quot;</span>)</span>
 <span id="cb8-258"><a href="#cb8-258" tabindex="-1"></a>  adlb <span class="ot">&lt;-</span> <span class="fu">flag_variables</span>(adlb, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">WGRHIFL =</span> <span class="st">&quot;new_var&quot;</span>)</span>
@@ -3052,7 +3053,7 @@ tracking.</p>
 <div id="admh" class="section level2">
 <h2><code>ADMH</code></h2>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>generate_admh <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">adsl =</span> tmc_ex_adsl,</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>                          <span class="at">max_n_mhs =</span> 10L) {</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>                          <span class="at">max_n_mhs =</span> <span class="dv">10</span><span class="dt">L</span>) {</span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  lookup_mh <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tribble</span>(</span>
 <span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>    <span class="sc">~</span>MHBODSYS, <span class="sc">~</span>MHDECOD, <span class="sc">~</span>MHSOC,</span>
@@ -3133,8 +3134,8 @@ tracking.</p>
 <div id="adqs" class="section level2">
 <h2><code>ADQS</code></h2>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>generate_adqs <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">adsl =</span> tmc_ex_adsl,</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>                          <span class="at">n_assessments =</span> 5L,</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>                          <span class="at">n_days =</span> 5L) {</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>                          <span class="at">n_assessments =</span> <span class="dv">5</span><span class="dt">L</span>,</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>                          <span class="at">n_days =</span> <span class="dv">5</span><span class="dt">L</span>) {</span>
 <span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  param <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
 <span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>    <span class="st">&quot;BFI All Questions&quot;</span>,</span>
@@ -3477,8 +3478,8 @@ tracking.</p>
 <div id="advs" class="section level2">
 <h2><code>ADVS</code></h2>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>generate_advs <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">adsl =</span> tmc_ex_adsl,</span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>                          <span class="at">n_assessments =</span> 5L,</span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>                          <span class="at">n_days =</span> 5L) {</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>                          <span class="at">n_assessments =</span> <span class="dv">5</span><span class="dt">L</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>                          <span class="at">n_days =</span> <span class="dv">5</span><span class="dt">L</span>) {</span>
 <span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  param <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
 <span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>    <span class="st">&quot;Diastolic Blood Pressure&quot;</span>,</span>

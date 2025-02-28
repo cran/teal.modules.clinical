@@ -15,10 +15,11 @@ template_forest_tte(
   cnsr_var = "CNSR",
   subgroup_var,
   strata_var = NULL,
+  stats = c("n_tot_events", "n_events", "median", "hr", "ci"),
+  riskdiff = NULL,
   conf_level = 0.95,
   col_symbol_size = NULL,
   time_unit_var = "AVALU",
-  rel_width_forest = 0.25,
   font_size = 15,
   ggplot2_args = teal.widgets::ggplot2_args()
 )
@@ -44,6 +45,23 @@ template_forest_tte(
 
 \item{strata_var}{(\code{character})\cr names of the variables for stratified analysis.}
 
+\item{stats}{(\code{character})\cr the names of statistics to be reported among:
+\itemize{
+\item \code{n_tot_events}: Total number of events per group.
+\item \code{n_events}: Number of events per group.
+\item \code{n_tot}: Total number of observations per group.
+\item \code{n}: Number of observations per group.
+\item \code{median}: Median survival time.
+\item \code{hr}: Hazard ratio.
+\item \code{ci}: Confidence interval of hazard ratio.
+\item \code{pval}: p-value of the effect.
+Note, one of the statistics \code{n_tot} and \code{n_tot_events}, as well as both \code{hr} and \code{ci}
+are required.
+}}
+
+\item{riskdiff}{(\code{list})\cr if a risk (proportion) difference column should be added, a list of settings to apply
+within the column. See \code{\link[tern:control_riskdiff]{tern::control_riskdiff()}} for details. If \code{NULL}, no risk difference column will be added.}
+
 \item{conf_level}{(\code{numeric})\cr value for the confidence level within the range of (0, 1).}
 
 \item{col_symbol_size}{(\code{integer} or \code{NULL})\cr column index to be used to determine relative size for
@@ -51,9 +69,6 @@ estimator plot symbol. Typically, the symbol size is proportional to the sample 
 to calculate the estimator. If \code{NULL}, the same symbol size is used for all subgroups.}
 
 \item{time_unit_var}{(\code{character})\cr name of the variable representing time units.}
-
-\item{rel_width_forest}{(\code{proportion})\cr proportion of total width to allocate to the forest plot. Relative
-width of table is then \code{1 - rel_width_forest}. If \code{as_list = TRUE}, this parameter is ignored.}
 
 \item{font_size}{(\code{numeric})\cr font size value.}
 

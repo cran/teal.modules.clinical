@@ -18,6 +18,8 @@ tm_g_forest_tte(
     "AVAL"), "AVAL", fixed = TRUE),
   cnsr_var = teal.transform::choices_selected(teal.transform::variable_choices(dataname,
     "CNSR"), "CNSR", fixed = TRUE),
+  stats = c("n_tot_events", "n_events", "median", "hr", "ci"),
+  riskdiff = NULL,
   conf_level = teal.transform::choices_selected(c(0.95, 0.9, 0.8), 0.95, keep_order =
     TRUE),
   time_unit_var =
@@ -30,7 +32,9 @@ tm_g_forest_tte(
   font_size = c(15L, 1L, 30L),
   pre_output = NULL,
   post_output = NULL,
-  ggplot2_args = teal.widgets::ggplot2_args()
+  ggplot2_args = teal.widgets::ggplot2_args(),
+  transformators = list(),
+  decorators = list()
 )
 }
 \arguments{
@@ -42,9 +46,7 @@ tm_g_forest_tte(
 
 \item{arm_var}{(\code{\link[teal.transform:choices_selected]{teal.transform::choices_selected()}})\cr object with all
 available choices and preselected option for variable names that can be used as \code{arm_var}.
-It defines the grouping variable(s) in the results table.
-If there are two elements selected for \code{arm_var},
-second variable will be nested under the first variable.}
+It defines the grouping variable in the results table.}
 
 \item{arm_ref_comp}{(\code{list}) optional,\cr if specified it must be a named list with each element corresponding to
 an arm variable in \code{ADSL} and the element must be another list (possibly
@@ -66,6 +68,23 @@ all available choices and pre-selected option for the analysis variable.}
 
 \item{cnsr_var}{(\code{\link[teal.transform:choices_selected]{teal.transform::choices_selected()}})\cr object with all
 available choices and preselected option for the censoring variable.}
+
+\item{stats}{(\code{character})\cr the names of statistics to be reported among:
+\itemize{
+\item \code{n_tot_events}: Total number of events per group.
+\item \code{n_events}: Number of events per group.
+\item \code{n_tot}: Total number of observations per group.
+\item \code{n}: Number of observations per group.
+\item \code{median}: Median survival time.
+\item \code{hr}: Hazard ratio.
+\item \code{ci}: Confidence interval of hazard ratio.
+\item \code{pval}: p-value of the effect.
+Note, one of the statistics \code{n_tot} and \code{n_tot_events}, as well as both \code{hr} and \code{ci}
+are required.
+}}
+
+\item{riskdiff}{(\code{list})\cr if a risk (proportion) difference column should be added, a list of settings to apply
+within the column. See \code{\link[tern:control_riskdiff]{tern::control_riskdiff()}} for details. If \code{NULL}, no risk difference column will be added.}
 
 \item{conf_level}{(\code{\link[teal.transform:choices_selected]{teal.transform::choices_selected()}})\cr object with
 all available choices and pre-selected option for the confidence level, each within range of (0, 1).}
@@ -97,6 +116,16 @@ For example the \code{\link[shiny:helpText]{shiny::helpText()}} elements are use
 for the module plot. The argument is merged with option \code{teal.ggplot2_args} and with default module arguments
 (hard coded in the module body).
 For more details, see the vignette: \code{vignette("custom-ggplot2-arguments", package = "teal.widgets")}.}
+
+\item{transformators}{(\code{list} of \code{teal_transform_module}) that will be applied to transform module's data input.
+To learn more check \code{vignette("transform-input-data", package = "teal")}.}
+
+\item{decorators}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+(named \code{list} of lists of \code{teal_transform_module}) optional,
+decorator for tables or plots included in the module output reported.
+The decorators are applied to the respective output objects.
+
+See section "Decorating Module" below for more details.}
 }
 \value{
 a \code{teal_module} object.
@@ -104,12 +133,47 @@ a \code{teal_module} object.
 \description{
 This module produces a grid-style forest plot for time-to-event data with ADaM structure.
 }
+\section{Decorating Module}{
+
+
+This module generates the following objects, which can be modified in place using decorators:
+\itemize{
+\item \code{plot} (\code{ggplot})
+}
+
+A Decorator is applied to the specific output using a named list of \code{teal_transform_module} objects.
+The name of this list corresponds to the name of the output to which the decorator is applied.
+See code snippet below:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{tm_g_forest_tte(
+   ..., # arguments for module
+   decorators = list(
+     plot = teal_transform_module(...) # applied only to `plot` output
+   )
+)
+}\if{html}{\out{</div>}}
+
+For additional details and examples of decorators, refer to the vignette
+\code{vignette("decorate-module-output", package = "teal.modules.clinical")}.
+
+To learn more please refer to the vignette
+\code{vignette("transform-module-output", package = "teal")} or the \code{\link[teal:teal_transform_module]{teal::teal_transform_module()}} documentation.
+}
+
 \examples{
 library(nestcolor)
+library(dplyr)
 
-ADSL <- tmc_ex_adsl
-ADTTE <- tmc_ex_adtte
-ADSL$RACE <- droplevels(ADSL$RACE) \%>\% with_label("Race")
+data <- teal_data()
+data <- within(data, {
+  ADSL <- tmc_ex_adsl
+  ADTTE <- tmc_ex_adtte
+  ADSL$RACE <- droplevels(ADSL$RACE) \%>\% with_label("Race")
+})
+join_keys(data) <- default_cdisc_join_keys[names(data)]
+
+ADSL <- data[["ADSL"]]
+ADTTE <- data[["ADTTE"]]
 
 arm_ref_comp <- list(
   ARM = list(
@@ -123,15 +187,7 @@ arm_ref_comp <- list(
 )
 
 app <- init(
-  data = cdisc_data(
-    ADSL = ADSL,
-    ADTTE = ADTTE,
-    code = "
-      ADSL <- tmc_ex_adsl
-      ADTTE <- tmc_ex_adtte
-      ADSL$RACE <- droplevels(ADSL$RACE) \%>\% with_label(\"Race\")
-    "
-  ),
+  data = data,
   modules = modules(
     tm_g_forest_tte(
       label = "Forest Survival",
@@ -165,3 +221,13 @@ if (interactive()) {
 The \href{https://insightsengineering.github.io/tlg-catalog/stable/}{TLG Catalog} where additional example
 apps implementing this module can be found.
 }
+\section{Examples in Shinylive}{
+\describe{
+  \item{example-1}{
+    \href{https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMBOhFoFuASgA60snGYFStAG5wABAB4AtDoBmgiOtol2cnQBUsAVQCiSpXSYsOEMaWLUijIoQ7sxs7Pyo1KyBrhD8UKRQ+kZc1AD68YnWSplJhjoA7rSkABa0EOEJULg6IEo6OgCCACIAygAyyTqkMARpcAAeaVD8otT1Tc22tk5dPX2Dw-yk5BMtHQAkWI0AwrP5-IxEkXDa1KLs6+1bu042AKQAfPeFxSVp1FD0cNTsCmBYKAEOD-IIAXyCACsiOU0gBrOCsC65GwHODGKDCUhpAj8WiiPrQ2EIpHAaDwZFVOQAXViVy6uWAwH+V3+1NpEBa032RkZzLAXJmbI5ShYMDSjHROKIMFQXToolIfwgDUaWAAsjoALw6BVKiYNSXGbU6f4AIUQOgACp9gfQiP9cAadMRZSaCH8BZbmoxBABzHQADUdprAO0tOxl9HKCUsEFBEzkTpVTQ1O2aJr1yoahvRJpZGp0Zsdztdcp1HoLmsaIarOh2CZTQSCovQXXKxWzOlyJtyyYafCEIlEJsHwjEXYaPTSfrSxgCPjSKzgk5zn2+1HzYAAYgvFTpWoJGJotNwSymc92quTdDqWVMhXhnQ0xWlNCx3SUYcDRGlRD84HUOB+FXS930YWgvhEHEvxkCcrhqSsBQ1WtkPVdNQSTZ8cyrDCwGwrCLxzV8jWlN0dRIqUy37S8dFQFhYFxT9vzEP8AKAkDsIad9qEEOAYJYi5BScGp-itNVGnQ5pUPE7Z1VBGjaNDAB5Vp-gIxSc1EQR6D9I5BFQN8PwrWCfzYkQONAnNwMg+hoIIUz4LadoahvITnLkQilIaJCzXVLAAGksAAJlQ1onGDMAgiUrzaMVZhEiMxhmLg39-ws8hOKIsCWFs+zHPcjpEM9Vp7EaWxGgARjCsqKtCqLYqU-5Su2Or1OynRopzLrmyUWhjXYcpyDUDRtGsGw6hTUQyggVhGnQdg0FQDZBFoGolo2f9j1UcElDAMFqSAA}{Open in Shinylive}
+    \if{html}{\out{<iframe class="iframe_shinylive" src="https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMBOhFoFuASgA60snGYFStAG5wABAB4AtDoBmgiOtol2cnQBUsAVQCiSpXSYsOEMaWLUijIoQ7sxs7Pyo1KyBrhD8UKRQ+kZc1AD68YnWSplJhjoA7rSkABa0EOEJULg6IEo6OgCCACIAygAyyTqkMARpcAAeaVD8otT1Tc22tk5dPX2Dw-yk5BMtHQAkWI0AwrP5-IxEkXDa1KLs6+1bu042AKQAfPeFxSVp1FD0cNTsCmBYKAEOD-IIAXyCACsiOU0gBrOCsC65GwHODGKDCUhpAj8WiiPrQ2EIpHAaDwZFVOQAXViVy6uWAwH+V3+1NpEBa032RkZzLAXJmbI5ShYMDSjHROKIMFQXToolIfwgDUaWAAsjoALw6BVKiYNSXGbU6f4AIUQOgACp9gfQiP9cAadMRZSaCH8BZbmoxBABzHQADUdprAO0tOxl9HKCUsEFBEzkTpVTQ1O2aJr1yoahvRJpZGp0Zsdztdcp1HoLmsaIarOh2CZTQSCovQXXKxWzOlyJtyyYafCEIlEJsHwjEXYaPTSfrSxgCPjSKzgk5zn2+1HzYAAYgvFTpWoJGJotNwSymc92quTdDqWVMhXhnQ0xWlNCx3SUYcDRGlRD84HUOB+FXS930YWgvhEHEvxkCcrhqSsBQ1WtkPVdNQSTZ8cyrDCwGwrCLxzV8jWlN0dRIqUy37S8dFQFhYFxT9vzEP8AKAkDsIad9qEEOAYJYi5BScGp-itNVGnQ5pUPE7Z1VBGjaNDAB5Vp-gIxSc1EQR6D9I5BFQN8PwrWCfzYkQONAnNwMg+hoIIUz4LadoahvITnLkQilIaJCzXVLAAGksAAJlQ1onGDMAgiUrzaMVZhEiMxhmLg39-ws8hOKIsCWFs+zHPcjpEM9Vp7EaWxGgARjCsqKtCqLYqU-5Su2Or1OynRopzLrmyUWhjXYcpyDUDRtGsGw6hTUQyggVhGnQdg0FQDZBFoGolo2f9j1UcElDAMFqSAA" style="height: 800px; width: 100vw; max-width: 1400px; border: 1px solid rgba(0,0,0,0.175); border-radius: .375rem; position: absolute; left: 50\%; margin-top: 30px; transform: translateX(-50\%); z-index: 1"></iframe>}}
+    \if{html}{\out{<a style='height: 800px; display: block;'></a>}}
+  }
+}
+}
+

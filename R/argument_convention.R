@@ -122,9 +122,7 @@ NULL
 #'   reference and comparison arms when the arm variable is changed.
 #' @param arm_var ([teal.transform::choices_selected()])\cr object with all
 #'   available choices and preselected option for variable names that can be used as `arm_var`.
-#'   It defines the grouping variable(s) in the results table.
-#'   If there are two elements selected for `arm_var`,
-#'   second variable will be nested under the first variable.
+#'   It defines the grouping variable in the results table.
 #' @param atirel ([teal.transform::choices_selected()])\cr object with all
 #'   available choices and preselected option for the `ATIREL` variable from `dataname`.
 #' @param aval_var ([teal.transform::choices_selected()])\cr object with
@@ -205,6 +203,12 @@ NULL
 #'   value indicating worst grade.
 #' @param worst_flag_var ([teal.transform::choices_selected()])\cr object
 #'   with all available choices and preselected option for variable names that can be used as worst flag variable.
+#' @param decorators `r lifecycle::badge("experimental")`
+#' (named `list` of lists of `teal_transform_module`) optional,
+#' decorator for tables or plots included in the module output reported.
+#' The decorators are applied to the respective output objects.
+#'
+#' See section "Decorating Module" below for more details.
 #'
 #' @return a `teal_module` object.
 #'

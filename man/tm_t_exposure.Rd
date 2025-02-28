@@ -28,7 +28,9 @@ tm_t_exposure(
   na_level = default_na_str(),
   pre_output = NULL,
   post_output = NULL,
-  basic_table_args = teal.widgets::basic_table_args()
+  basic_table_args = teal.widgets::basic_table_args(),
+  transformators = list(),
+  decorators = list()
 )
 }
 \arguments{
@@ -91,6 +93,16 @@ For example the \code{\link[shiny:helpText]{shiny::helpText()}} elements are use
 with settings for the module table. The argument is merged with option \code{teal.basic_table_args} and with default
 module arguments (hard coded in the module body).
 For more details, see the vignette: \code{vignette("custom-basic-table-arguments", package = "teal.widgets")}.}
+
+\item{transformators}{(\code{list} of \code{teal_transform_module}) that will be applied to transform module's data input.
+To learn more check \code{vignette("transform-input-data", package = "teal")}.}
+
+\item{decorators}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+(named \code{list} of lists of \code{teal_transform_module}) optional,
+decorator for tables or plots included in the module output reported.
+The decorators are applied to the respective output objects.
+
+See section "Decorating Module" below for more details.}
 }
 \value{
 a \code{teal_module} object.
@@ -98,6 +110,33 @@ a \code{teal_module} object.
 \description{
 The module produces an exposure table for risk management plan.
 }
+\section{Decorating Module}{
+
+
+This module generates the following objects, which can be modified in place using decorators:
+\itemize{
+\item \code{table} (\code{ElementaryTable} as created from \code{rtables::build_table})
+}
+
+A Decorator is applied to the specific output using a named list of \code{teal_transform_module} objects.
+The name of this list corresponds to the name of the output to which the decorator is applied.
+See code snippet below:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{tm_t_exposure(
+   ..., # arguments for module
+   decorators = list(
+     table = teal_transform_module(...) # applied only to `table` output
+   )
+)
+}\if{html}{\out{</div>}}
+
+For additional details and examples of decorators, refer to the vignette
+\code{vignette("decorate-module-output", package = "teal.modules.clinical")}.
+
+To learn more please refer to the vignette
+\code{vignette("transform-module-output", package = "teal")} or the \code{\link[teal:teal_transform_module]{teal::teal_transform_module()}} documentation.
+}
+
 \examples{
 library(dplyr)
 
@@ -107,7 +146,7 @@ data <- within(data, {
   ADEX <- tmc_ex_adex
 
   set.seed(1, kind = "Mersenne-Twister")
-  labels <- col_labels(ADEX, fill = FALSE)
+  .labels <- col_labels(ADEX, fill = FALSE)
   ADEX <- ADEX \%>\%
     distinct(USUBJID, .keep_all = TRUE) \%>\%
     mutate(
@@ -117,12 +156,9 @@ data <- within(data, {
       AVALU = "Days"
     ) \%>\%
     bind_rows(ADEX)
-  col_labels(ADEX) <- labels
+  col_labels(ADEX) <- .labels
 })
-
-datanames <- c("ADSL", "ADEX")
-datanames(data) <- datanames
-join_keys(data) <- default_cdisc_join_keys[datanames]
+join_keys(data) <- default_cdisc_join_keys[names(data)]
 
 app <- init(
   data = data,
@@ -160,3 +196,13 @@ if (interactive()) {
 The \href{https://insightsengineering.github.io/tlg-catalog/stable/}{TLG Catalog} where additional example
 apps implementing this module can be found.
 }
+\section{Examples in Shinylive}{
+\describe{
+  \item{example-1}{
+    \href{https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMBOhFoFuASgA60snGYFStAG5wABAB4AtDoBmgiOtol2cnQBUsAVQCiSpXSYsO-VNVaNFEEr8UKRQ+kZc1AD6waHWQSFhhjoA7rSkABa0EOyxULg6IEo6OgCCACIAygAy4TqkMARRcAAeUVD8otTFZeVOABp1DU2t7fytrhAlonCkGDNw-OwAjAUA1tn8OgC8OgpgALKqMxAQcAa2aaLkjPsBJRjUUPRw1KJ1xNFPL2-sFQMFYy0ajUHY6ABipWqlSc916Azq-0GAFIAHzInolfi0a7ZdTsByVBwAIQAUgBJcoFDBrOBwVDtEFg+zOGxojFTEo6GCCULkdiYrkABVKWFKBwAwuUwftbOUHFhyvtcIKSiKxQcZWAAPLaZhMoTMDQkHS5KCsUSKPCqsoANShYNEsB8cHYLUdcAAjisCgAmAAM-rkBVEtAAXrpdjlgzpGPSngRI3ZHLCVZyuXaoQ4teVzaJ9oK2ejBfRNlFGEQUqI-n1+nDPlFvq9q0ibMlHs9m0oAL4BABWRGyUVpFrNoTbRnGxigwlIUQI2NETQHQ5HomA0Hg1bycgAupM0Kg6tl0gLOXkwXk0yU+EIRO9drfhGIzxmGlE561UERRII46+Mx0JtQV2fZyj-EJLCmIhjB0JwWm-X84zsZ4RGVG08k3JN9iRdD0y5VAWFgBcwQIDJB0TUQohmER1EWADAJ0MiKLEMFNG4QQ4HnciZBfPJgGAHDa32XddwKfZ1XFKVlT2MBJIOO5r0YnQaLgOitlAsA5QVJUwBtYMbQbehWCidjGFInjKOo141PIJYbRKZjeIfHQzNoVCuKcyixygAShIGESxJUwR6BmUhSIFMAYX6GScKwBSwDkAz8IzVT1K1aKCxSnRksYisUiiYzTJYCyWKotK7IYwCvNY3Y3I87iyp8vywFwsBRJDEKwoi-YxQlFw8FkrAnAAcXJbUADllliqL7FKWxSmmwb9kyxLcuUirFi1PqBv0pSM0IxhZHC3YavKmz1KqjMzrYjjPMsvjEhatqOtk9UJXm31FIclSLrsnNGEEABzMossY9aMw6fgPyIUIQIhKEYULHp1qBagbjBSJqLobysa6XjIoqGoZsqUpwXBaoZM2jTZIATTuAIAloWD2GyG4oAsbRrBsIpOVELIIFYUp0HYQ8ABJBFoApxZmRg9QCbslDAbtdyAA}{Open in Shinylive}
+    \if{html}{\out{<iframe class="iframe_shinylive" src="https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMBOhFoFuASgA60snGYFStAG5wABAB4AtDoBmgiOtol2cnQBUsAVQCiSpXSYsO-VNVaNFEEr8UKRQ+kZc1AD6waHWQSFhhjoA7rSkABa0EOyxULg6IEo6OgCCACIAygAy4TqkMARRcAAeUVD8otTFZeVOABp1DU2t7fytrhAlonCkGDNw-OwAjAUA1tn8OgC8OgpgALKqMxAQcAa2aaLkjPsBJRjUUPRw1KJ1xNFPL2-sFQMFYy0ajUHY6ABipWqlSc916Azq-0GAFIAHzInolfi0a7ZdTsByVBwAIQAUgBJcoFDBrOBwVDtEFg+zOGxojFTEo6GCCULkdiYrkABVKWFKBwAwuUwftbOUHFhyvtcIKSiKxQcZWAAPLaZhMoTMDQkHS5KCsUSKPCqsoANShYNEsB8cHYLUdcAAjisCgAmAAM-rkBVEtAAXrpdjlgzpGPSngRI3ZHLCVZyuXaoQ4teVzaJ9oK2ejBfRNlFGEQUqI-n1+nDPlFvq9q0ibMlHs9m0oAL4BABWRGyUVpFrNoTbRnGxigwlIUQI2NETQHQ5HomA0Hg1bycgAupM0Kg6tl0gLOXkwXk0yU+EIRO9drfhGIzxmGlE561UERRII46+Mx0JtQV2fZyj-EJLCmIhjB0JwWm-X84zsZ4RGVG08k3JN9iRdD0y5VAWFgBcwQIDJB0TUQohmER1EWADAJ0MiKLEMFNG4QQ4HnciZBfPJgGAHDa32XddwKfZ1XFKVlT2MBJIOO5r0YnQaLgOitlAsA5QVJUwBtYMbQbehWCidjGFInjKOo141PIJYbRKZjeIfHQzNoVCuKcyixygAShIGESxJUwR6BmUhSIFMAYX6GScKwBSwDkAz8IzVT1K1aKCxSnRksYisUiiYzTJYCyWKotK7IYwCvNY3Y3I87iyp8vywFwsBRJDEKwoi-YxQlFw8FkrAnAAcXJbUADllliqL7FKWxSmmwb9kyxLcuUirFi1PqBv0pSM0IxhZHC3YavKmz1KqjMzrYjjPMsvjEhatqOtk9UJXm31FIclSLrsnNGEEABzMossY9aMw6fgPyIUIQIhKEYULHp1qBagbjBSJqLobysa6XjIoqGoZsqUpwXBaoZM2jTZIATTuAIAloWD2GyG4oAsbRrBsIpOVELIIFYUp0HYQ8ABJBFoApxZmRg9QCbslDAbtdyAA" style="height: 800px; width: 100vw; max-width: 1400px; border: 1px solid rgba(0,0,0,0.175); border-radius: .375rem; position: absolute; left: 50\%; margin-top: 30px; transform: translateX(-50\%); z-index: 1"></iframe>}}
+    \if{html}{\out{<a style='height: 800px; display: block;'></a>}}
+  }
+}
+}
+

@@ -14,7 +14,9 @@ tm_t_pp_prior_medication(
   cmindc = NULL,
   cmstdy = NULL,
   pre_output = NULL,
-  post_output = NULL
+  post_output = NULL,
+  transformators = list(),
+  decorators = list()
 )
 }
 \arguments{
@@ -43,6 +45,16 @@ For example a title.}
 
 \item{post_output}{(\code{shiny.tag}) optional,\cr with text placed after the output to put the output into context.
 For example the \code{\link[shiny:helpText]{shiny::helpText()}} elements are useful.}
+
+\item{transformators}{(\code{list} of \code{teal_transform_module}) that will be applied to transform module's data input.
+To learn more check \code{vignette("transform-input-data", package = "teal")}.}
+
+\item{decorators}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+(named \code{list} of lists of \code{teal_transform_module}) optional,
+decorator for tables or plots included in the module output reported.
+The decorators are applied to the respective output objects.
+
+See section "Decorating Module" below for more details.}
 }
 \value{
 a \code{teal_module} object.
@@ -50,30 +62,51 @@ a \code{teal_module} object.
 \description{
 This module produces a patient profile prior medication report using ADaM datasets.
 }
+\section{Decorating Module}{
+
+
+This module generates the following objects, which can be modified in place using decorators:
+\itemize{
+\item \code{table} (\code{datatables} - output of \code{DT::datatable()})
+}
+
+A Decorator is applied to the specific output using a named list of \code{teal_transform_module} objects.
+The name of this list corresponds to the name of the output to which the decorator is applied.
+See code snippet below:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{tm_t_pp_prior_medication(
+   ..., # arguments for module
+   decorators = list(
+     table = teal_transform_module(...) # applied only to `table` output
+   )
+)
+}\if{html}{\out{</div>}}
+
+For additional details and examples of decorators, refer to the vignette
+\code{vignette("decorate-module-output", package = "teal.modules.clinical")}.
+
+To learn more please refer to the vignette
+\code{vignette("transform-module-output", package = "teal")} or the \code{\link[teal:teal_transform_module]{teal::teal_transform_module()}} documentation.
+}
+
 \examples{
 library(dplyr)
-
-ADCM <- tmc_ex_adcm
-ADSL <- tmc_ex_adsl \%>\% filter(USUBJID \%in\% ADCM$USUBJID)
-ADCM$CMASTDTM <- ADCM$ASTDTM
-ADCM$CMAENDTM <- ADCM$AENDTM
+data <- teal_data()
+data <- within(data, {
+  ADCM <- tmc_ex_adcm
+  ADSL <- tmc_ex_adsl \%>\% filter(USUBJID \%in\% ADCM$USUBJID)
+  ADCM$CMASTDTM <- ADCM$ASTDTM
+  ADCM$CMAENDTM <- ADCM$AENDTM
+})
+join_keys(data) <- default_cdisc_join_keys[names(data)]
 adcm_keys <- c("STUDYID", "USUBJID", "ASTDTM", "CMSEQ", "ATC1", "ATC2", "ATC3", "ATC4")
+join_keys(data)["ADCM", "ADCM"] <- adcm_keys
 
-join_keys <- default_cdisc_join_keys[c("ADSL", "ADCM")]
-join_keys["ADCM", "ADCM"] <- adcm_keys
+ADSL <- data[["ADSL"]]
+ADCM <- data[["ADCM"]]
 
 app <- init(
-  data = cdisc_data(
-    ADSL = ADSL,
-    ADCM = ADCM,
-    code = "
-      ADCM <- tmc_ex_adcm
-      ADSL <- tmc_ex_adsl \%>\% filter(USUBJID \%in\% ADCM$USUBJID)
-      ADCM$CMASTDTM <- ADCM$ASTDTM
-      ADCM$CMAENDTM <- ADCM$AENDTM
-    ",
-    join_keys = join_keys
-  ),
+  data = data,
   modules = modules(
     tm_t_pp_prior_medication(
       label = "Prior Medication",
@@ -104,3 +137,13 @@ if (interactive()) {
 }
 
 }
+\section{Examples in Shinylive}{
+\describe{
+  \item{example-1}{
+    \href{https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMBOhFoFuASgA60snGYFStAG5wABAB4AtDoBmgiOtol2cnQBUsAVQCiSpXSYsO-VNVaNFEPxQpFD6RlzUAPpBIdZKMaGGOgDutKQAFrQQ7Am4OiBKOjoAggAiAMIAsmE6pDAEkXAAHpFQ-AQwhSWlAMoAMjV1Dc2t-KLUOgCkAHyTJrTU5IzsDj0OAEIAUgCSpVNZc2VVACSrGzulAUVHlcdVxT22pbbVSTfHD08vXe-3TgByz1eRnexQBQKUAF8AgArIhZSIAazgrFEOWCUBsSX4cGMUGEpEiBH4tFEDThCORqOA0HgaIScgAuko2h0kSjRDUCOwFGBHg5SgBNXa8vK8s5bEV4HS8z4Q6W8qo9JwARVFMrAxVs5QAjOrZdqAEz6zXagDMJq15QALLzYfCIOzUeiQnJgLKKpVLZ7eYyaqyYE7RK4IGV+jUEsB3Zren1fczQ56Ixiox6qvGQ2hUDUsmkeRAigkdABeHS5Lp8IQiTmlyvCMT5opFOqRQnoSKoRiWRiReAk2QaKxdJs6ahQehwCal3kABS7REYOkqcH7wUsEFFw6bCVpumnMfTeC3RVQLAopF3JY1YbjR4LI50p4056JRCnGolF0395Ha8Yk6vAh0nhAgxEiURJzgdQV0bB8iiAkCxCvTQWFoccRCJYCZAbG4xVNbYsCcW85FwY8mwgkRoP4K8DQIojeTIkiyI6HFiGo0sEOw0RwMgqjYLgzjQJrHQUK7dC4EwxC0VwjUqlKJxygAeVKO1SJ-B8KKg8h2Nkyp5KUlSwEYtSBJgLJ2kArChJ4yjtP4h9BKQ0tRLQ+gMMc6TPTwqptkBcpVLIopNKomiwB8vyGPUoomKinQOlEUh+FYSypJsrSYMCuKrKckTUPEySuPYGTZUeIUAtioLeO00K5UFSK4KuJtGoCAJaGMHR2CyJYoAsbRrBsAp71ETIIFYYp0HYLNjkEWg8imiDGG0fwoSUMBIUZIA}{Open in Shinylive}
+    \if{html}{\out{<iframe class="iframe_shinylive" src="https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMBOhFoFuASgA60snGYFStAG5wABAB4AtDoBmgiOtol2cnQBUsAVQCiSpXSYsO-VNVaNFEPxQpFD6RlzUAPpBIdZKMaGGOgDutKQAFrQQ7Am4OiBKOjoAggAiAMIAsmE6pDAEkXAAHpFQ-AQwhSWlAMoAMjV1Dc2t-KLUOgCkAHyTJrTU5IzsDj0OAEIAUgCSpVNZc2VVACSrGzulAUVHlcdVxT22pbbVSTfHD08vXe-3TgByz1eRnexQBQKUAF8AgArIhZSIAazgrFEOWCUBsSX4cGMUGEpEiBH4tFEDThCORqOA0HgaIScgAuko2h0kSjRDUCOwFGBHg5SgBNXa8vK8s5bEV4HS8z4Q6W8qo9JwARVFMrAxVs5QAjOrZdqAEz6zXagDMJq15QALLzYfCIOzUeiQnJgLKKpVLZ7eYyaqyYE7RK4IGV+jUEsB3Zren1fczQ56Ixiox6qvGQ2hUDUsmkeRAigkdABeHS5Lp8IQiTmlyvCMT5opFOqRQnoSKoRiWRiReAk2QaKxdJs6ahQehwCal3kABS7REYOkqcH7wUsEFFw6bCVpumnMfTeC3RVQLAopF3JY1YbjR4LI50p4056JRCnGolF0395Ha8Yk6vAh0nhAgxEiURJzgdQV0bB8iiAkCxCvTQWFoccRCJYCZAbG4xVNbYsCcW85FwY8mwgkRoP4K8DQIojeTIkiyI6HFiGo0sEOw0RwMgqjYLgzjQJrHQUK7dC4EwxC0VwjUqlKJxygAeVKO1SJ-B8KKg8h2Nkyp5KUlSwEYtSBJgLJ2kArChJ4yjtP4h9BKQ0tRLQ+gMMc6TPTwqptkBcpVLIopNKomiwB8vyGPUoomKinQOlEUh+FYSypJsrSYMCuKrKckTUPEySuPYGTZUeIUAtioLeO00K5UFSK4KuJtGoCAJaGMHR2CyJYoAsbRrBsAp71ETIIFYYp0HYLNjkEWg8imiDGG0fwoSUMBIUZIA" style="height: 800px; width: 100vw; max-width: 1400px; border: 1px solid rgba(0,0,0,0.175); border-radius: .375rem; position: absolute; left: 50\%; margin-top: 30px; transform: translateX(-50\%); z-index: 1"></iframe>}}
+    \if{html}{\out{<a style='height: 800px; display: block;'></a>}}
+  }
+}
+}
+
