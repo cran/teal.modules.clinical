@@ -30,7 +30,7 @@ template_exposure <- function(parentname,
                               add_total_row = TRUE,
                               total_row_label = "Total number of patients and patient time*",
                               drop_levels = TRUE,
-                              na_level = default_na_str(),
+                              na_level = tern::default_na_str(),
                               aval_var,
                               avalu_var,
                               basic_table_args = teal.widgets::basic_table_args()) {
@@ -69,7 +69,7 @@ template_exposure <- function(parentname,
   data_list <- add_expr(
     data_list,
     substitute(
-      dataname <- df_explicit_na(dataname, na_level = na_str),
+      dataname <- tern::df_explicit_na(dataname, na_level = na_str),
       env = list(
         dataname = as.name("anl"),
         na_str = na_level
@@ -79,7 +79,7 @@ template_exposure <- function(parentname,
   y$data <- bracket_expr(data_list)
 
   # layout start
-  y$layout_prep <- quote(split_fun <- drop_split_levels)
+  y$layout_prep <- quote(split_fun <- rtables::drop_split_levels)
 
   if (is.null(paramcd_label)) {
     paramcd_label <- paramcd
@@ -106,7 +106,7 @@ template_exposure <- function(parentname,
       layout_list <- add_expr(
         layout_list,
         substitute(
-          rtables::split_cols_by(col_by_var, split_fun = add_overall_level(total_label, first = FALSE)),
+          rtables::split_cols_by(col_by_var, split_fun = rtables::add_overall_level(total_label, first = FALSE)),
           env = list(
             col_by_var = col_by_var,
             total_label = total_label
@@ -129,7 +129,7 @@ template_exposure <- function(parentname,
   layout_list <- add_expr(
     layout_list,
     substitute(
-      analyze_patients_exposure_in_cols(
+      tern::analyze_patients_exposure_in_cols(
         var = row_by_var,
         ex_var = aval_var,
         col_split = TRUE,
@@ -168,12 +168,12 @@ template_exposure <- function(parentname,
   layout_list <- add_expr(
     layout_list,
     substitute(
-      analyze_patients_exposure_in_cols(
+      tern::analyze_patients_exposure_in_cols(
         var = row_by_var,
         col_split = FALSE,
         na_str = na_str
       ) %>%
-        append_topleft(c(split_label)),
+        rtables::append_topleft(c(split_label)),
       env = list(
         row_by_var = row_by_var,
         na_str = na_level,
@@ -345,7 +345,7 @@ tm_t_exposure <- function(label,
                           total_label = default_total_label(),
                           add_total_row = TRUE,
                           total_row_label = "Total number of patients and patient time*",
-                          na_level = default_na_str(),
+                          na_level = tern::default_na_str(),
                           pre_output = NULL,
                           post_output = NULL,
                           basic_table_args = teal.widgets::basic_table_args(),
@@ -427,9 +427,10 @@ ui_t_exposure <- function(id, ...) {
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c(
         "paramcd", "col_by_var", "row_by_var", "id_var", "parcat", "aval_var", "avalu_var"
       )]),
@@ -460,9 +461,10 @@ ui_t_exposure <- function(id, ...) {
       checkboxInput(ns("add_total_row"), "Add Total row", value = a$add_total_row),
       checkboxInput(ns("add_total"), "Add All Patients column", value = a$add_total),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "table")),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional Variables Info",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional Variables Info",
           teal.transform::data_extract_ui(
             id = ns("id_var"),
             label = "Subject Identifier",
@@ -702,7 +704,7 @@ srv_t_exposure <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

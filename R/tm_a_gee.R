@@ -70,8 +70,8 @@ template_a_gee <- function(output_table,
         substitute(
           expr = {
             table <- tern.gee::as.rtable(model_fit, type = "cov")
-            subtitles(table) <- st
-            main_footer(table) <- mf
+            rtables::subtitles(table) <- st
+            rtables::main_footer(table) <- mf
           },
           env = list(
             st = basic_table_args$subtitles,
@@ -82,8 +82,8 @@ template_a_gee <- function(output_table,
         substitute(
           expr = {
             table <- tern.gee::as.rtable(data.frame(Coefficient = model_fit$coefficients))
-            subtitles(table) <- st
-            main_footer(table) <- mf
+            rtables::subtitles(table) <- st
+            rtables::main_footer(table) <- mf
           },
           env = list(
             conf_level = conf_level,
@@ -103,8 +103,8 @@ template_a_gee <- function(output_table,
                 alt_counts_df = dataname_lsmeans
               )
 
-            subtitles(table) <- st
-            main_footer(table) <- mf
+            rtables::subtitles(table) <- st
+            rtables::main_footer(table) <- mf
           },
           env = list(
             dataname_lsmeans = as.name(dataname_lsmeans),
@@ -299,9 +299,10 @@ ui_gee <- function(id, ...) {
     ),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c("arm_var", "paramcd", "id_var", "visit_var", "cov_var", "aval_var")]),
       teal.transform::data_extract_ui(
         id = ns("aval_var"),
@@ -623,7 +624,7 @@ srv_gee <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
   })
 }

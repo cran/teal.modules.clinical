@@ -602,9 +602,10 @@ ui_g_patient_timeline <- function(id, ...) {
     output = teal.widgets::plot_with_settings_ui(id = ns("patient_timeline_plot")),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(
         ui_args[c(
           "aeterm", "cmdecod",
@@ -702,9 +703,9 @@ ui_g_patient_timeline <- function(id, ...) {
         )
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(ui_args$decorators, "plot")),
-      teal.widgets::panel_item(
+      bslib::accordion_panel(
         title = "Plot settings",
-        collapsed = TRUE,
+        open = TRUE,
         teal.widgets::optionalSliderInputValMinMax(
           ns("font_size"),
           "Font Size",
@@ -984,7 +985,7 @@ srv_g_patient_timeline <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

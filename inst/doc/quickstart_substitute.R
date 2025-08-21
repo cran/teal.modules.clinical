@@ -71,6 +71,8 @@ eval(plot_expr)
 
 ## ----message=FALSE------------------------------------------------------------
 library(teal.modules.clinical)
+library(rtables)
+library(tern)
 library(dplyr)
 
 adlb <- tmc_ex_adlb

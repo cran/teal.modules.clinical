@@ -19,6 +19,7 @@ template_g_km(
   facet_var = "SEX",
   font_size = 11,
   conf_level = 0.95,
+  conf_type = "plain",
   ties = "efron",
   xlab = "Survival time",
   time_unit_var = "AVALU",
@@ -28,10 +29,8 @@ template_g_km(
   annot_surv_med = TRUE,
   annot_coxph = TRUE,
   control_annot_surv_med = control_surv_med_annot(),
-  control_annot_coxph = control_coxph_annot(x = 0.27, y = 0.35, w = 0.3),
+  control_annot_coxph = tern::control_coxph_annot(x = 0.27, y = 0.35, w = 0.3),
   legend_pos = NULL,
-  position_coxph = lifecycle::deprecated(),
-  width_annots = lifecycle::deprecated(),
   rel_height_plot = 0.8,
   ci_ribbon = FALSE,
   title = "KM Plot"
@@ -68,6 +67,9 @@ optimal tick positions on the x-axis.}
 
 \item{conf_level}{(\code{numeric})\cr value for the confidence level within the range of (0, 1).}
 
+\item{conf_type}{(\code{string})\cr confidence interval type for median survival time CI. Options are "plain" (default),
+"log", "log-log".}
+
 \item{ties}{(\code{string})\cr among \code{exact} (equivalent to \code{DISCRETE} in SAS), \code{efron} and \code{breslow},
 see \code{\link[survival:coxph]{survival::coxph()}}. Note: there is no equivalent of SAS \code{EXACT} method in R.}
 
@@ -99,12 +101,6 @@ options are: \code{x}, \code{y}, \code{w}, \code{h}, \code{fill}, and \code{ref_
 \item{legend_pos}{(\code{numeric(2)} or \code{NULL})\cr vector containing x- and y-coordinates, respectively, for the legend
 position relative to the KM plot area. If \code{NULL} (default), the legend is positioned in the bottom right corner of
 the plot, or the middle right of the plot if needed to prevent overlapping.}
-
-\item{position_coxph}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}  Please use the \code{x} and \code{y} elements of
-\code{control_annot_coxph} instead.}
-
-\item{width_annots}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Please use the \code{w} element of \code{control_annot_surv_med}
-(for \code{surv_med}) and \code{control_annot_coxph} (for \code{coxph})."}
 
 \item{rel_height_plot}{(\code{proportion})\cr proportion of total figure height to allocate to the Kaplan-Meier plot.
 Relative height of patients at risk table is then \code{1 - rel_height_plot}. If \code{annot_at_risk = FALSE} or

@@ -116,7 +116,7 @@ template_abnormality_by_worst_grade <- function(parentname, # nolint: object_len
   data_list <- add_expr(
     data_list,
     substitute(
-      expr = if (is.null(obj_label(anl[[paramcd]]))) {
+      expr = if (is.null(rtables::obj_label(anl[[paramcd]]))) {
         stop("Please specify label for ", paramcd)
       },
       env = list(
@@ -165,7 +165,7 @@ template_abnormality_by_worst_grade <- function(parentname, # nolint: object_len
         expr = expr_basic_table_args %>%
           rtables::split_cols_by(
             var = arm_var,
-            split_fun = add_overall_level(label = total_label, first = FALSE)
+            split_fun = rtables::add_overall_level(label = total_label, first = FALSE)
           ),
         env = list(
           arm_var = arm_var,
@@ -188,9 +188,9 @@ template_abnormality_by_worst_grade <- function(parentname, # nolint: object_len
       expr = rtables::split_rows_by(
         paramcd,
         label_pos = "topleft",
-        split_label = obj_label(anl[[paramcd]])
+        split_label = rtables::obj_label(anl[[paramcd]])
       ) %>%
-        summarize_num_patients(
+        tern::summarize_num_patients(
           var = id_var,
           required = "GRADE_ANL",
           .stats = "unique_count"
@@ -198,10 +198,10 @@ template_abnormality_by_worst_grade <- function(parentname, # nolint: object_len
         rtables::split_rows_by(
           "GRADE_DIR",
           label_pos = "topleft",
-          split_fun = trim_levels_to_map(map = map),
-          split_label = obj_label(anl$GRADE_DIR)
+          split_fun = rtables::trim_levels_to_map(map = map),
+          split_label = rtables::obj_label(anl$GRADE_DIR)
         ) %>%
-        count_abnormal_by_worst_grade(
+        tern::count_abnormal_by_worst_grade(
           var = "GRADE_ANL",
           variables = list(id = id_var, param = paramcd, grade_dir = "GRADE_DIR"),
           .indent_mods = 4L
@@ -436,9 +436,10 @@ ui_t_abnormality_by_worst_grade <- function(id, ...) { # nolint: object_length.
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(
         a[c(
           "arm_var",
@@ -482,9 +483,10 @@ ui_t_abnormality_by_worst_grade <- function(id, ...) { # nolint: object_length.
         is_single_dataset = is_single_dataset_value
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "table")),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional table settings",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional table settings",
           teal.transform::data_extract_ui(
             id = ns("id_var"),
             label = "Subject Identifier",
@@ -737,7 +739,7 @@ srv_t_abnormality_by_worst_grade <- function(id, # nolint: object_length.
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

@@ -99,7 +99,7 @@ template_ancova <- function(dataname = "ANL",
     anl_list <- add_expr(
       anl_list,
       substitute_names(
-        expr = dplyr::mutate(arm_var = combine_levels(arm_var, levels = comp_arm)),
+        expr = dplyr::mutate(arm_var = tern::combine_levels(arm_var, levels = comp_arm)),
         names = list(arm_var = as.name(arm_var)),
         others = list(comp_arm = comp_arm)
       )
@@ -107,15 +107,15 @@ template_ancova <- function(dataname = "ANL",
     parent_list <- add_expr(
       parent_list,
       substitute_names(
-        expr = dplyr::mutate(arm_var = combine_levels(arm_var, levels = comp_arm)),
+        expr = dplyr::mutate(arm_var = tern::combine_levels(arm_var, levels = comp_arm)),
         names = list(arm_var = as.name(arm_var)),
         others = list(comp_arm = comp_arm)
       )
     )
   }
 
-  anl_list <- add_expr(anl_list, quote(df_explicit_na(na_level = default_na_str())))
-  parent_list <- add_expr(parent_list, quote(df_explicit_na(na_level = default_na_str())))
+  anl_list <- add_expr(anl_list, quote(tern::df_explicit_na(na_level = tern::default_na_str())))
+  parent_list <- add_expr(parent_list, quote(tern::df_explicit_na(na_level = tern::default_na_str())))
 
   data_list <- add_expr(
     data_list,
@@ -171,7 +171,7 @@ template_ancova <- function(dataname = "ANL",
     )
   )
 
-  y$layout_prep <- quote(split_fun <- drop_split_levels)
+  y$layout_prep <- quote(split_fun <- rtables::drop_split_levels)
   layout_list <- list()
   layout_list <- add_expr(
     layout_list,
@@ -237,7 +237,7 @@ template_ancova <- function(dataname = "ANL",
       layout_list <- add_expr(
         layout_list,
         substitute(
-          summarize_ancova(
+          tern::summarize_ancova(
             vars = aval_var,
             variables = list(arm = arm_var, covariates = cov_var),
             conf_level = conf_level,
@@ -260,7 +260,7 @@ template_ancova <- function(dataname = "ANL",
       layout_list <- add_expr(
         layout_list,
         substitute(
-          summarize_ancova(
+          tern::summarize_ancova(
             vars = aval_var,
             variables = list(arm = arm_var, covariates = NULL),
             conf_level = conf_level,
@@ -279,7 +279,7 @@ template_ancova <- function(dataname = "ANL",
         layout_list <- add_expr(
           layout_list,
           substitute(
-            summarize_ancova(
+            tern::summarize_ancova(
               vars = aval_var,
               variables = list(arm = arm_var, covariates = cov_var),
               conf_level = conf_level,
@@ -314,7 +314,7 @@ template_ancova <- function(dataname = "ANL",
         layout_list <- add_expr(
           layout_list,
           substitute(
-            summarize_ancova(
+            tern::summarize_ancova(
               vars = aval_var,
               variables = list(arm = arm_var, covariates = cov_var),
               conf_level = conf_level,
@@ -340,7 +340,7 @@ template_ancova <- function(dataname = "ANL",
           layout_list <- add_expr(
             layout_list,
             substitute(
-              summarize_ancova(
+              tern::summarize_ancova(
                 vars = aval_var,
                 variables = list(arm = arm_var, covariates = NULL),
                 conf_level = conf_level,
@@ -361,7 +361,7 @@ template_ancova <- function(dataname = "ANL",
           layout_list <- add_expr(
             layout_list,
             substitute(
-              summarize_ancova(
+              tern::summarize_ancova(
                 vars = aval_var,
                 variables = list(arm = arm_var, covariates = cov_var),
                 conf_level = conf_level,
@@ -615,9 +615,10 @@ ui_ancova <- function(id, ...) {
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c("arm_var", "aval_var", "cov_var", "avisit", "paramcd", "interact_var")]),
       teal.transform::data_extract_ui(
         id = ns("avisit"),
@@ -671,11 +672,10 @@ ui_ancova <- function(id, ...) {
         fixed = a$conf_level$fixed
       ),
       tags$div(
-        tags$label("Include Interaction Term"),
-        shinyWidgets::switchInput(
-          inputId = ns("include_interact"),
-          value = FALSE,
-          size = "mini"
+        bslib::input_switch(
+          id = ns("include_interact"),
+          label = "Include Interaction Term",
+          value = FALSE
         ),
         conditionalPanel(
           condition = paste0("input['", ns("include_interact"), "']"),
@@ -777,6 +777,13 @@ srv_ancova <- function(id,
       teal.transform::compose_and_enable_validators(iv, selector_list)
     })
 
+    # Set tern default for missing values for reproducibility (on .onLoad for the examples)
+    data_with_tern_options_r <- reactive({
+      within(data(), {
+        tern::set_default_na_str("<Missing>")
+      })
+    })
+
     anl_inputs <- teal.transform::merge_expression_srv(
       selector_list = selector_list,
       datasets = data,
@@ -790,7 +797,7 @@ srv_ancova <- function(id,
     )
 
     anl_q <- reactive({
-      data() %>%
+      data_with_tern_options_r() %>%
         teal.code::eval_code(as.expression(anl_inputs()$expr)) %>%
         teal.code::eval_code(as.expression(adsl_inputs()$expr))
     })
@@ -800,6 +807,8 @@ srv_ancova <- function(id,
       adsl_input_r = adsl_inputs,
       anl_q = anl_q
     )
+
+
 
     output$helptext_ui <- renderUI({
       if (length(selector_list()$arm_var()$select) != 0) {
@@ -1015,7 +1024,7 @@ srv_ancova <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

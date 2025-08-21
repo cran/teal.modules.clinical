@@ -20,28 +20,28 @@
               plot_number <- 0L
               function(x) {
                   plot_number <<- plot_number + 1L
-                  g_km(x, variables = variables, control_surv = control_surv_timepoint(conf_level = 0.95), 
-                      xticks = NULL, xlab = sprintf("%s (%s)", "Survival time", 
-                        gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", 
-                          tolower(x$AVALU[1]), perl = TRUE)), yval = "Survival", 
-                      ylim = NULL, title = sprintf("%s%s", sprintf("%s%s", 
-                        "KM Plot", if (!is.null(facets)) {
+                  tern::g_km(x, variables = variables, control_surv = tern::control_surv_timepoint(conf_level = 0.95, 
+                      conf_type = "plain"), xticks = NULL, xlab = sprintf("%s (%s)", 
+                      "Survival time", gsub("(^|[[:space:]])([[:alpha:]])", 
+                        "\\1\\U\\2", tolower(x$AVALU[1]), perl = TRUE)), 
+                      yval = "Survival", ylim = NULL, title = sprintf("%s%s", 
+                        sprintf("%s%s", "KM Plot", if (!is.null(facets)) {
                           sprintf(", %s = %s", as.character(quote(SEX)), 
                             unique(x[[as.character(quote(SEX))]]))
                         }
                         else {
                           ""
                         }), if (length(NULL) != 0) {
-                        sprintf("\nStratified by %s", toString(NULL))
-                      }
-                      else {
-                        ""
-                      }), footnotes = if (TRUE) {
+                          sprintf("\nStratified by %s", toString(NULL))
+                        }
+                        else {
+                          ""
+                        }), footnotes = if (TRUE) {
                         paste("Ties for Coxph (Hazard Ratio):", "efron", 
                           "\n", "p-value Method for Coxph (Hazard Ratio):", 
                           "log-rank")
                       }, font_size = 11, ci_ribbon = FALSE, annot_surv_med = TRUE, 
-                      annot_coxph = TRUE, control_coxph_pw = control_coxph(conf_level = 0.95, 
+                      annot_coxph = TRUE, control_coxph_pw = tern::control_coxph(conf_level = 0.95, 
                         pval_method = "log-rank", ties = "efron"), 
                       control_annot_surv_med = list(x = 0.8, y = 0.85, 
                         w = 0.32, h = 0.16, fill = TRUE), control_annot_coxph = list(x = 0.27, 
@@ -63,7 +63,7 @@
       $data
       {
           anl <- ANL %>% dplyr::filter(ARM %in% c("ARM C", "ARM D", 
-              "ARM A", "ARM B")) %>% dplyr::mutate(ARM = combine_levels(ARM, 
+              "ARM A", "ARM B")) %>% dplyr::mutate(ARM = tern::combine_levels(ARM, 
               levels = c("ARM C", "ARM D"), new_level = "ARM C/ARM D")) %>% 
               dplyr::mutate(ARM = stats::relevel(ARM, ref = "ARM C/ARM D")) %>% 
               dplyr::mutate(ARM = droplevels(ARM)) %>% dplyr::mutate(is_event = CNSR == 
@@ -81,28 +81,28 @@
               plot_number <- 0L
               function(x) {
                   plot_number <<- plot_number + 1L
-                  g_km(x, variables = variables, control_surv = control_surv_timepoint(conf_level = 0.95), 
-                      xticks = NULL, xlab = sprintf("%s (%s)", "Survival time", 
-                        gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", 
-                          tolower(x$AVALU[1]), perl = TRUE)), yval = "Survival", 
-                      ylim = NULL, title = sprintf("%s%s", sprintf("%s%s", 
-                        "KM Plot", if (!is.null(facets)) {
+                  tern::g_km(x, variables = variables, control_surv = tern::control_surv_timepoint(conf_level = 0.95, 
+                      conf_type = "plain"), xticks = NULL, xlab = sprintf("%s (%s)", 
+                      "Survival time", gsub("(^|[[:space:]])([[:alpha:]])", 
+                        "\\1\\U\\2", tolower(x$AVALU[1]), perl = TRUE)), 
+                      yval = "Survival", ylim = NULL, title = sprintf("%s%s", 
+                        sprintf("%s%s", "KM Plot", if (!is.null(facets)) {
                           sprintf(", %s = %s", as.character(quote(SEX)), 
                             unique(x[[as.character(quote(SEX))]]))
                         }
                         else {
                           ""
                         }), if (length(NULL) != 0) {
-                        sprintf("\nStratified by %s", toString(NULL))
-                      }
-                      else {
-                        ""
-                      }), footnotes = if (TRUE) {
+                          sprintf("\nStratified by %s", toString(NULL))
+                        }
+                        else {
+                          ""
+                        }), footnotes = if (TRUE) {
                         paste("Ties for Coxph (Hazard Ratio):", "efron", 
                           "\n", "p-value Method for Coxph (Hazard Ratio):", 
                           "log-rank")
                       }, font_size = 11, ci_ribbon = FALSE, annot_surv_med = TRUE, 
-                      annot_coxph = TRUE, control_coxph_pw = control_coxph(conf_level = 0.95, 
+                      annot_coxph = TRUE, control_coxph_pw = tern::control_coxph(conf_level = 0.95, 
                         pval_method = "log-rank", ties = "efron"), 
                       control_annot_surv_med = list(x = 0.8, y = 0.85, 
                         w = 0.32, h = 0.16, fill = TRUE), control_annot_coxph = list(x = 0.27, 
@@ -124,12 +124,12 @@
       $data
       {
           anl <- ANL %>% dplyr::filter(ARM %in% c("ARM C", "ARM D", 
-              "ARM A", "ARM B")) %>% dplyr::mutate(ARM = combine_levels(ARM, 
+              "ARM A", "ARM B")) %>% dplyr::mutate(ARM = tern::combine_levels(ARM, 
               levels = c("ARM C", "ARM D"), new_level = "ARM C/ARM D")) %>% 
               dplyr::mutate(ARM = stats::relevel(ARM, ref = "ARM C/ARM D")) %>% 
               dplyr::mutate(ARM = droplevels(ARM)) %>% dplyr::mutate(is_event = CNSR == 
-              0) %>% dplyr::mutate(ARM = combine_levels(ARM, levels = c("ARM A", 
-              "ARM B"), new_level = "ARM A/ARM B"))
+              0) %>% dplyr::mutate(ARM = tern::combine_levels(ARM, 
+              levels = c("ARM A", "ARM B"), new_level = "ARM A/ARM B"))
       }
       
       $variables
@@ -143,28 +143,28 @@
               plot_number <- 0L
               function(x) {
                   plot_number <<- plot_number + 1L
-                  g_km(x, variables = variables, control_surv = control_surv_timepoint(conf_level = 0.95), 
-                      xticks = NULL, xlab = sprintf("%s (%s)", "Survival time", 
-                        gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", 
-                          tolower(x$AVALU[1]), perl = TRUE)), yval = "Survival", 
-                      ylim = NULL, title = sprintf("%s%s", sprintf("%s%s", 
-                        "KM Plot", if (!is.null(facets)) {
+                  tern::g_km(x, variables = variables, control_surv = tern::control_surv_timepoint(conf_level = 0.95, 
+                      conf_type = "plain"), xticks = NULL, xlab = sprintf("%s (%s)", 
+                      "Survival time", gsub("(^|[[:space:]])([[:alpha:]])", 
+                        "\\1\\U\\2", tolower(x$AVALU[1]), perl = TRUE)), 
+                      yval = "Survival", ylim = NULL, title = sprintf("%s%s", 
+                        sprintf("%s%s", "KM Plot", if (!is.null(facets)) {
                           sprintf(", %s = %s", as.character(quote(SEX)), 
                             unique(x[[as.character(quote(SEX))]]))
                         }
                         else {
                           ""
                         }), if (length(NULL) != 0) {
-                        sprintf("\nStratified by %s", toString(NULL))
-                      }
-                      else {
-                        ""
-                      }), footnotes = if (TRUE) {
+                          sprintf("\nStratified by %s", toString(NULL))
+                        }
+                        else {
+                          ""
+                        }), footnotes = if (TRUE) {
                         paste("Ties for Coxph (Hazard Ratio):", "efron", 
                           "\n", "p-value Method for Coxph (Hazard Ratio):", 
                           "log-rank")
                       }, font_size = 11, ci_ribbon = FALSE, annot_surv_med = TRUE, 
-                      annot_coxph = TRUE, control_coxph_pw = control_coxph(conf_level = 0.95, 
+                      annot_coxph = TRUE, control_coxph_pw = tern::control_coxph(conf_level = 0.95, 
                         pval_method = "log-rank", ties = "efron"), 
                       control_annot_surv_med = list(x = 0.8, y = 0.85, 
                         w = 0.32, h = 0.16, fill = TRUE), control_annot_coxph = list(x = 0.27, 

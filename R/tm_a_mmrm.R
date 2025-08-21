@@ -65,7 +65,7 @@ template_fit_mmrm <- function(parentname,
       data_list <- add_expr(
         data_list,
         substitute_names(
-          expr = dplyr::mutate(arm_var = combine_levels(arm_var, levels = comp_arm)),
+          expr = dplyr::mutate(arm_var = tern::combine_levels(arm_var, levels = comp_arm)),
           names = list(arm_var = as.name(arm_var)),
           others = list(comp_arm = comp_arm)
         )
@@ -73,7 +73,7 @@ template_fit_mmrm <- function(parentname,
       parent_list <- add_expr(
         parent_list,
         substitute_names(
-          expr = dplyr::mutate(arm_var = combine_levels(arm_var, levels = comp_arm)),
+          expr = dplyr::mutate(arm_var = tern::combine_levels(arm_var, levels = comp_arm)),
           names = list(arm_var = as.name(arm_var)),
           others = list(comp_arm = comp_arm)
         )
@@ -100,8 +100,8 @@ template_fit_mmrm <- function(parentname,
       )
     )
   }
-  data_list <- add_expr(data_list, quote(df_explicit_na(na_level = default_na_str())))
-  parent_list <- add_expr(parent_list, quote(df_explicit_na(na_level = default_na_str())))
+  data_list <- add_expr(data_list, quote(tern::df_explicit_na(na_level = tern::default_na_str())))
+  parent_list <- add_expr(parent_list, quote(tern::df_explicit_na(na_level = tern::default_na_str())))
 
   y$data <- substitute(
     expr = {
@@ -206,7 +206,7 @@ template_mmrm_tables <- function(parentname,
         layout_list,
         substitute(
           expr = rtables::split_rows_by(visit_var) %>%
-            append_varlabels(dataname, visit_var) %>%
+            tern::append_varlabels(dataname, visit_var) %>%
             tern.mmrm::summarize_lsmeans(
               .stats = c(
                 "n",
@@ -230,7 +230,7 @@ template_mmrm_tables <- function(parentname,
         layout_list,
         substitute(
           expr = rtables::split_rows_by(visit_var) %>%
-            append_varlabels(dataname, visit_var) %>%
+            tern::append_varlabels(dataname, visit_var) %>%
             tern.mmrm::summarize_lsmeans(show_relative = show_relative) %>%
             rtables::append_topleft(paste0("  ", paramcd)),
           env = list(
@@ -270,7 +270,7 @@ template_mmrm_tables <- function(parentname,
         expr = {
           lsmeans_table <- rtables::build_table(
             lyt = lyt,
-            df = df_explicit_na(broom::tidy(fit_mmrm), na_level = default_na_str()),
+            df = tern::df_explicit_na(broom::tidy(fit_mmrm), na_level = tern::default_na_str()),
             alt_counts_df = parentname
           )
         },
@@ -284,7 +284,7 @@ template_mmrm_tables <- function(parentname,
       y$cov_matrix <- substitute(
         expr = {
           covariance_table <- tern.mmrm::as.rtable(fit_mmrm, type = "cov")
-          subtitles(covariance_table) <- st
+          rtables::subtitles(covariance_table) <- st
         },
         env = list(
           fit_mmrm = as.name(fit_name),
@@ -296,7 +296,7 @@ template_mmrm_tables <- function(parentname,
       y$fixed_effects <- substitute(
         expr = {
           fixed_effects_table <- tern.mmrm::as.rtable(fit_mmrm, type = "fixed")
-          subtitles(fixed_effects_table) <- st
+          rtables::subtitles(fixed_effects_table) <- st
         },
         env = list(
           fit_mmrm = as.name(fit_name),
@@ -308,7 +308,7 @@ template_mmrm_tables <- function(parentname,
       y$diagnostic_table <- substitute(
         expr = {
           diagnostic_table <- tern.mmrm::as.rtable(fit_mmrm, type = "diagnostic")
-          subtitles(diagnostic_table) <- st
+          rtables::subtitles(diagnostic_table) <- st
         },
         env = list(
           fit_mmrm = as.name(fit_name),
@@ -668,9 +668,6 @@ ui_mmrm <- function(id, ...) {
   )
 
   tagList(
-    singleton(
-      tags$head(includeCSS(system.file("css/custom.css", package = "teal.modules.clinical")))
-    ),
     teal.widgets::standard_layout(
       output = teal.widgets::white_small_well(
         textOutput(ns("null_input_msg")),
@@ -680,13 +677,15 @@ ui_mmrm <- function(id, ...) {
       ),
       encoding = tags$div(
         ### Reporter
-        teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+        teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+        tags$br(), tags$br(),
         ###
-        tags$label("Encodings", class = "text-primary"),
+        tags$label("Encodings", class = "text-primary"), tags$br(),
         teal.transform::datanames_input(a[c("arm_var", "paramcd", "id_var", "visit_var", "cov_var", "aval_var")]),
-        teal.widgets::panel_group(
-          teal.widgets::panel_item(
-            "Model Settings",
+        bslib::accordion(
+          open = TRUE,
+          bslib::accordion_panel(
+            title = "Model Settings",
             teal.transform::data_extract_ui(
               id = ns("aval_var"),
               label = "Analysis Variable",
@@ -777,8 +776,7 @@ ui_mmrm <- function(id, ...) {
               ns("parallel"),
               "Parallel Computing",
               value = TRUE
-            ),
-            collapsed = FALSE # Start with having this panel opened.
+            )
           )
         ),
         actionButton(
@@ -786,7 +784,8 @@ ui_mmrm <- function(id, ...) {
           "Fit Model",
           icon = icon("calculator"),
           width = "100%",
-          class = "btn action-button text-dark bg-orange mb-4"
+          class = "btn action-button",
+          style = "background-color: orange; color: black; margin-bottom: 1rem;"
         ),
         radioButtons(
           ns("output_function"),
@@ -833,9 +832,11 @@ ui_mmrm <- function(id, ...) {
             "input['", ns("output_function"), "'] == 'g_mmrm_lsmeans'", " || ",
             "input['", ns("output_function"), "'] == 'g_mmrm_diagnostic'"
           ),
-          teal.widgets::panel_group(
-            teal.widgets::panel_item(
-              "Output Settings",
+          bslib::accordion(
+            open = TRUE,
+            bslib::accordion_panel(
+              title = "Output Settings",
+
               # Additional option for LS means table.
               selectInput(
                 ns("t_mmrm_lsmeans_show_relative"),
@@ -886,10 +887,10 @@ ui_mmrm <- function(id, ...) {
             )
           )
         )
+      ),
+      forms = tagList(
+        teal.widgets::verbatim_popup_ui(ns("rcode"), "Show R code")
       )
-    ),
-    forms = tagList(
-      teal.widgets::verbatim_popup_ui(ns("rcode"), "Show R code")
     ),
     pre_output = a$pre_output,
     post_output = a$post_output
@@ -1027,8 +1028,18 @@ srv_mmrm <- function(id,
       anl_name = "ANL_ADSL"
     )
 
+    # Set tern default for missing values for reproducibility (on .onLoad for the examples)
+    data_with_tern_options_r <- reactive({
+      within(data(),
+        {
+          tern::set_default_na_str(default_na_str)
+        },
+        default_na_str = getOption("tern_default_na_str", default = "<Missing>")
+      )
+    })
+
     anl_q <- reactive({
-      data() %>%
+      data_with_tern_options_r() %>%
         teal.code::eval_code(code = as.expression(anl_inputs()$expr)) %>%
         teal.code::eval_code(code = as.expression(adsl_merge_inputs()$expr))
     })
@@ -1553,7 +1564,7 @@ srv_mmrm <- function(id,
       id = "rcode",
       verbatim_content = source_code_r,
       disabled = disable_r_code,
-      title = "R Code for the Current MMRM Analysis"
+      title = label
     )
 
     ### REPORTER
@@ -1584,7 +1595,7 @@ srv_mmrm <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

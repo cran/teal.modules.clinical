@@ -3,7 +3,6 @@
 #' Creates a valid expression to generate a table to summarize variables.
 #'
 #' @inheritParams template_arguments
-#' @param show_labels `r lifecycle::badge("deprecated")`
 #' @param arm_var_labels (`character` or `NULL`)\cr vector of column variable labels to display, of the same length as
 #'   `arm_var`. If `NULL`, no labels will be displayed.
 #'
@@ -16,26 +15,18 @@ template_summary <- function(dataname,
                              parentname,
                              arm_var,
                              sum_vars,
-                             show_labels = lifecycle::deprecated(),
                              add_total = TRUE,
                              total_label = default_total_label(),
                              var_labels = character(),
                              arm_var_labels = NULL,
                              na.rm = FALSE, # nolint: object_name.
-                             na_level = default_na_str(),
+                             na_level = tern::default_na_str(),
                              numeric_stats = c(
                                "n", "mean_sd", "mean_ci", "median", "median_ci", "quantiles", "range", "geom_mean"
                              ),
                              denominator = c("N", "n", "omit"),
                              drop_arm_levels = TRUE,
                              basic_table_args = teal.widgets::basic_table_args()) {
-  if (lifecycle::is_present(show_labels)) {
-    warning(
-      "The `show_labels` argument of `template_summary` is deprecated as of teal.modules.clinical 0.9.1.9013 ",
-      "as it is has no effect on the module.",
-      call. = FALSE
-    )
-  }
 
   checkmate::assert_string(dataname)
   checkmate::assert_string(parentname)
@@ -65,7 +56,7 @@ template_summary <- function(dataname,
     data_list,
     substitute(
       expr = anl <- df %>%
-        df_explicit_na(omit_columns = setdiff(names(df), c(sum_vars)), na_level = na_str),
+        tern::df_explicit_na(omit_columns = setdiff(names(df), c(sum_vars)), na_level = na_str),
       env = list(
         df = as.name(dataname),
         sum_vars = sum_vars,
@@ -87,7 +78,7 @@ template_summary <- function(dataname,
   data_list <- add_expr(
     data_list,
     substitute(
-      expr = parentname <- df_explicit_na(parentname, na_level = na_str),
+      expr = parentname <- tern::df_explicit_na(parentname, na_level = na_str),
       env = list(
         parentname = as.name(parentname),
         na_str = na_level
@@ -118,7 +109,7 @@ template_summary <- function(dataname,
   split_cols_call <- lapply(arm_var, function(x) {
     if (drop_arm_levels) {
       substitute(
-        expr = rtables::split_cols_by(x, split_fun = drop_split_levels),
+        expr = rtables::split_cols_by(x, split_fun = rtables::drop_split_levels),
         env = list(x = x)
       )
     } else {
@@ -156,7 +147,7 @@ template_summary <- function(dataname,
     layout_list,
     if (length(var_labels) > 0) {
       substitute(
-        expr = analyze_vars(
+        expr = tern::analyze_vars(
           vars = sum_vars,
           var_labels = sum_var_labels,
           show_labels = "visible",
@@ -169,7 +160,7 @@ template_summary <- function(dataname,
       )
     } else {
       substitute(
-        expr = analyze_vars(
+        expr = tern::analyze_vars(
           vars = sum_vars,
           show_labels = "visible",
           na.rm = na.rm,
@@ -186,7 +177,7 @@ template_summary <- function(dataname,
     layout_list <- add_expr(
       layout_list,
       substitute(
-        expr = append_topleft(arm_var_labels),
+        expr = rtables::append_topleft(arm_var_labels),
         env = list(arm_var_labels = c(arm_var_labels, ""))
       )
     )
@@ -297,7 +288,7 @@ tm_t_summary <- function(label,
                          total_label = default_total_label(),
                          show_arm_var_labels = TRUE,
                          useNA = c("ifany", "no"), # nolint: object_name.
-                         na_level = default_na_str(),
+                         na_level = tern::default_na_str(),
                          numeric_stats = c(
                            "n", "mean_sd", "mean_ci", "median", "median_ci", "quantiles", "range", "geom_mean"
                          ),
@@ -370,9 +361,10 @@ ui_summary <- function(id, ...) {
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c("arm_var", "summarize_vars")]),
       teal.transform::data_extract_ui(
         id = ns("arm_var"),
@@ -387,9 +379,10 @@ ui_summary <- function(id, ...) {
         data_extract_spec = a$summarize_vars,
         is_single_dataset = is_single_dataset_value
       ),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional table settings",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional table settings",
           radioButtons(
             ns("useNA"),
             label = "Display NA counts",
@@ -642,7 +635,7 @@ srv_summary <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

@@ -3,6 +3,7 @@
 #' Creates a valid expression to generate a binary outcome analysis.
 #'
 #' @inheritParams template_arguments
+#' @inheritParams tern::s_count_occurrences
 #' @param responder_val (`character`)\cr the short label for observations to
 #'   translate `AVALC` into responder/non-responder.
 #' @param responder_val_levels (`character`)\cr the levels of responses that will be shown in the multinomial
@@ -34,7 +35,8 @@ template_binary_outcome <- function(dataname,
                                     ),
                                     add_total = FALSE,
                                     total_label = default_total_label(),
-                                    na_level = default_na_str(),
+                                    na_level = tern::default_na_str(),
+                                    denom = c("N_col", "n", "N_row"),
                                     basic_table_args = teal.widgets::basic_table_args()) {
   checkmate::assert_string(dataname)
   checkmate::assert_string(parentname)
@@ -46,6 +48,8 @@ template_binary_outcome <- function(dataname,
   checkmate::assert_flag(add_total)
   checkmate::assert_string(na_level)
   checkmate::assert_string(total_label)
+
+  denom <- match.arg(denom)
 
   ref_arm_val <- paste(ref_arm, collapse = "/")
   y <- list()
@@ -67,7 +71,7 @@ template_binary_outcome <- function(dataname,
   data_list <- add_expr(
     data_list,
     substitute_names(
-      expr = dplyr::mutate(is_rsp = aval_var %in% responder_val) %>%
+      expr = dplyr::mutate(is_rsp = dplyr::if_else(!is.na(aval_var), aval_var %in% responder_val, NA)) %>%
         dplyr::mutate(aval = factor(aval_var, levels = responder_val_levels)),
       names = list(
         aval = as.name(aval_var)
@@ -83,7 +87,7 @@ template_binary_outcome <- function(dataname,
   y$data <- substitute(
     expr = {
       anl <- data_pipe
-      parentname <- arm_preparation %>% df_explicit_na(na_level = na_str)
+      parentname <- arm_preparation %>% tern::df_explicit_na(na_level = na_str)
     },
     env = list(
       data_pipe = pipe_expr(data_list),
@@ -146,7 +150,7 @@ template_binary_outcome <- function(dataname,
       substitute(
         rtables::split_cols_by(
           var = arm_var,
-          split_fun = add_overall_level(total_label, first = FALSE)
+          split_fun = rtables::add_overall_level(total_label, first = FALSE)
         ),
         env = list(
           arm_var = arm_var,
@@ -169,15 +173,17 @@ template_binary_outcome <- function(dataname,
   layout_list <- add_expr(
     layout_list,
     substitute(
-      estimate_proportion(
+      tern::estimate_proportion(
         vars = "is_rsp",
         conf_level = conf_level,
         method = method,
-        table_names = "prop_est"
+        table_names = "prop_est",
+        denom = denom
       ),
       env = list(
         conf_level = control$global$conf_level,
-        method = control$global$method
+        method = control$global$method,
+        denom = denom
       )
     )
   )
@@ -186,14 +192,14 @@ template_binary_outcome <- function(dataname,
     layout_list <- add_expr(
       layout_list,
       substitute(
-        expr = estimate_proportion_diff(
+        expr = tern::estimate_proportion_diff(
           vars = "is_rsp", show_labels = "visible",
           var_labels = "Unstratified Analysis",
           conf_level = conf_level,
           method = method_ci,
           table_names = "u_prop_diff"
         ) %>%
-          test_proportion_diff(
+          tern::test_proportion_diff(
             vars = "is_rsp",
             method = method_test,
             table_names = "u_test_diff"
@@ -210,7 +216,7 @@ template_binary_outcome <- function(dataname,
       layout_list <- add_expr(
         layout_list,
         substitute(
-          expr = estimate_odds_ratio(
+          expr = tern::estimate_odds_ratio(
             vars = "is_rsp",
             conf_level = conf_level,
             table_names = "u_est_or"
@@ -224,7 +230,7 @@ template_binary_outcome <- function(dataname,
       layout_list <- add_expr(
         layout_list,
         substitute(
-          expr = estimate_proportion_diff(
+          expr = tern::estimate_proportion_diff(
             vars = "is_rsp", show_labels = "visible",
             var_labels = "Stratified Analysis",
             variables = list(strata = strata),
@@ -232,7 +238,7 @@ template_binary_outcome <- function(dataname,
             method = method_ci,
             table_names = "s_prop_diff"
           ) %>%
-            test_proportion_diff(
+            tern::test_proportion_diff(
               vars = "is_rsp",
               method = method_test,
               variables = list(strata = strata),
@@ -255,7 +261,7 @@ template_binary_outcome <- function(dataname,
       add_expr(
         layout_list,
         substitute(
-          expr = estimate_odds_ratio(
+          expr = tern::estimate_odds_ratio(
             vars = "is_rsp",
             variables = list(arm = arm_var, strata = strata),
             conf_level = conf_level,
@@ -273,7 +279,7 @@ template_binary_outcome <- function(dataname,
       add_expr(
         layout_list,
         substitute(
-          expr = estimate_odds_ratio(
+          expr = tern::estimate_odds_ratio(
             vars = "is_rsp",
             variables = list(arm = arm_var, strata = strata),
             conf_level = conf_level,
@@ -293,7 +299,7 @@ template_binary_outcome <- function(dataname,
     layout_list <- add_expr(
       layout_list,
       substitute(
-        estimate_multinomial_response(
+        tern::estimate_multinomial_response(
           var = aval_var,
           conf_level = conf_level,
           method = method
@@ -440,7 +446,8 @@ template_binary_outcome <- function(dataname,
 #'           rsp = c("Progressive Disease (PD)", "Stable Disease (SD)"),
 #'           levels = c("Progressive Disease (PD)", "Stable Disease (SD)", "Not Evaluable (NE)")
 #'         )
-#'       )
+#'       ),
+#'       denom = "N_col"
 #'     )
 #'   )
 #' )
@@ -485,7 +492,8 @@ tm_t_binary_outcome <- function(label,
                                 ),
                                 add_total = FALSE,
                                 total_label = default_total_label(),
-                                na_level = default_na_str(),
+                                na_level = tern::default_na_str(),
+                                denom = c("N_col", "n", "N_row"),
                                 pre_output = NULL,
                                 post_output = NULL,
                                 basic_table_args = teal.widgets::basic_table_args(),
@@ -532,6 +540,8 @@ tm_t_binary_outcome <- function(label,
   checkmate::assert_subset(control$strat$method_test, c("cmh"))
   assert_decorators(decorators, "table")
 
+  denom <- match.arg(denom)
+
   args <- as.list(environment())
 
   data_extract_list <- list(
@@ -558,6 +568,7 @@ tm_t_binary_outcome <- function(label,
         control = control,
         rsp_table = rsp_table,
         na_level = na_level,
+        denom = denom,
         basic_table_args = basic_table_args,
         decorators = decorators
       )
@@ -582,9 +593,10 @@ ui_t_binary_outcome <- function(id, ...) {
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c("paramcd", "arm_var", "aval_var", "strata_var")]),
       teal.transform::data_extract_ui(
         id = ns("paramcd"),
@@ -607,11 +619,10 @@ ui_t_binary_outcome <- function(id, ...) {
       ),
       tags$div(
         class = "arm-comp-box",
-        tags$label("Compare Treatments"),
-        shinyWidgets::switchInput(
-          inputId = ns("compare_arms"),
-          value = !is.null(a$arm_ref_comp),
-          size = "mini"
+        bslib::input_switch(
+          id = ns("compare_arms"),
+          label = "Compare Treatments",
+          value = !is.null(a$arm_ref_comp)
         ),
         conditionalPanel(
           condition = paste0("input['", ns("compare_arms"), "']"),
@@ -634,9 +645,10 @@ ui_t_binary_outcome <- function(id, ...) {
       ),
       conditionalPanel(
         condition = paste0("input['", ns("compare_arms"), "']"),
-        teal.widgets::panel_group(
-          teal.widgets::panel_item(
-            "Unstratified analysis settings",
+        bslib::accordion(
+          open = TRUE,
+          bslib::accordion_panel(
+            title = "Unstratified analysis settings",
             teal.widgets::optionalSelectInput(
               ns("u_diff_ci"),
               label = "Method for Difference of Proportions CI",
@@ -663,15 +675,17 @@ ui_t_binary_outcome <- function(id, ...) {
               multiple = FALSE,
               fixed = FALSE
             ),
-            tags$label("Odds Ratio Estimation"),
-            shinyWidgets::switchInput(
-              inputId = ns("u_odds_ratio"), value = a$control$unstrat$odds, size = "mini"
+            bslib::input_switch(
+              id = ns("u_odds_ratio"),
+              label = "Odds Ratio Estimation",
+              value = a$control$unstrat$odds
             )
           )
         ),
-        teal.widgets::panel_group(
-          teal.widgets::panel_item(
-            "Stratified analysis settings",
+        bslib::accordion(
+          open = TRUE,
+          bslib::accordion_panel(
+            title = "Stratified analysis settings",
             teal.transform::data_extract_ui(
               id = ns("strata_var"),
               label = "Stratification Factors",
@@ -708,8 +722,9 @@ ui_t_binary_outcome <- function(id, ...) {
         checkboxInput(ns("add_total"), "Add All Patients column", value = a$add_total)
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "table")),
-      teal.widgets::panel_item(
+      bslib::accordion_panel(
         "Additional table settings",
+        open = TRUE,
         teal.widgets::optionalSelectInput(
           inputId = ns("prop_ci_method"),
           label = "Method for Proportion CI",
@@ -734,11 +749,10 @@ ui_t_binary_outcome <- function(id, ...) {
           multiple = FALSE,
           fixed = a$conf_level$fixed
         ),
-        tags$label("Show All Response Categories"),
-        shinyWidgets::switchInput(
-          inputId = ns("show_rsp_cat"),
-          value = ifelse(a$rsp_table, TRUE, FALSE),
-          size = "mini"
+        bslib::input_switch(
+          id = ns("show_rsp_cat"),
+          label = "Show All Response Categories",
+          value = ifelse(a$rsp_table, TRUE, FALSE)
         )
       ),
       teal.transform::data_extract_ui(
@@ -775,6 +789,7 @@ srv_t_binary_outcome <- function(id,
                                  default_responses,
                                  rsp_table,
                                  na_level,
+                                 denom,
                                  basic_table_args,
                                  decorators) {
   with_reporter <- !missing(reporter) && inherits(reporter, "Reporter")
@@ -1020,6 +1035,7 @@ srv_t_binary_outcome <- function(id,
         add_total = input$add_total,
         total_label = total_label,
         na_level = na_level,
+        denom = denom,
         basic_table_args = basic_table_args
       )
 
@@ -1068,7 +1084,7 @@ srv_t_binary_outcome <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

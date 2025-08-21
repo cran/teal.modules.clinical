@@ -6,6 +6,8 @@
 #' @inheritParams tern::g_km
 #' @inheritParams tern::control_coxreg
 #' @param facet_var (`character`)\cr name of the variable to use to facet the plot.
+#' @param conf_type (`string`)\cr confidence interval type for median survival time CI. Options are "plain" (default),
+#'   "log", "log-log".
 #'
 #' @inherit template_arguments return
 #'
@@ -26,6 +28,7 @@ template_g_km <- function(dataname = "ANL",
                           facet_var = "SEX",
                           font_size = 11,
                           conf_level = 0.95,
+                          conf_type = "plain",
                           ties = "efron",
                           xlab = "Survival time",
                           time_unit_var = "AVALU",
@@ -35,34 +38,12 @@ template_g_km <- function(dataname = "ANL",
                           annot_surv_med = TRUE,
                           annot_coxph = TRUE,
                           control_annot_surv_med = control_surv_med_annot(),
-                          control_annot_coxph = control_coxph_annot(x = 0.27, y = 0.35, w = 0.3),
+                          control_annot_coxph = tern::control_coxph_annot(x = 0.27, y = 0.35, w = 0.3),
                           legend_pos = NULL,
-                          position_coxph = lifecycle::deprecated(),
-                          width_annots = lifecycle::deprecated(),
                           rel_height_plot = 0.80,
                           ci_ribbon = FALSE,
                           title = "KM Plot") {
-  if (lifecycle::is_present(position_coxph)) {
-    control_annot_coxph[["x"]] <- position_coxph[1]
-    control_annot_coxph[["y"]] <- position_coxph[2]
-    lifecycle::deprecate_warn(
-      "0.8.17",
-      "template_g_km(position_coxph)",
-      details = "Please use the 'x' and 'y' elements of the `control_annot_coxph` argument instead."
-    )
-  }
-  if (lifecycle::is_present(width_annots)) {
-    control_annot_surv_med[["w"]] <- width_annots[["surv_med"]]
-    control_annot_coxph[["w"]] <- width_annots[["coxph"]]
-    lifecycle::deprecate_warn(
-      "0.8.17",
-      "template_g_km(width_annots)",
-      details = paste(
-        "Please use the 'w' element of the `control_annot_surv_med`",
-        "and `control_annot_coxph` arguments instead."
-      )
-    )
-  }
+
   checkmate::assert_string(dataname)
   checkmate::assert_string(arm_var)
   checkmate::assert_string(aval_var)
@@ -109,7 +90,7 @@ template_g_km <- function(dataname = "ANL",
     data_list <- add_expr(
       data_list,
       substitute_names(
-        expr = dplyr::mutate(arm_var = combine_levels(arm_var, levels = comp_arm, new_level = comp_arm_val)),
+        expr = dplyr::mutate(arm_var = tern::combine_levels(arm_var, levels = comp_arm, new_level = comp_arm_val)),
         names = list(arm_var = as.name(arm_var)),
         others = list(comp_arm = comp_arm, comp_arm_val = comp_arm_val)
       )
@@ -171,10 +152,10 @@ template_g_km <- function(dataname = "ANL",
           plot_number <- 0L
           function(x) {
             plot_number <<- plot_number + 1L
-            g_km(
+            tern::g_km(
               x,
               variables = variables,
-              control_surv = control_surv_timepoint(conf_level = conf_level),
+              control_surv = tern::control_surv_timepoint(conf_level = conf_level, conf_type = conf_type),
               xticks = xticks,
               xlab = sprintf(
                 "%s (%s)",
@@ -210,7 +191,7 @@ template_g_km <- function(dataname = "ANL",
               ci_ribbon = ci_ribbon,
               annot_surv_med = annot_surv_med,
               annot_coxph = annot_coxph,
-              control_coxph_pw = control_coxph(conf_level = conf_level, pval_method = pval_method, ties = ties),
+              control_coxph_pw = tern::control_coxph(conf_level = conf_level, pval_method = pval_method, ties = ties),
               control_annot_surv_med = control_annot_surv_med,
               control_annot_coxph = control_annot_coxph,
               legend_pos = legend_pos,
@@ -241,6 +222,7 @@ template_g_km <- function(dataname = "ANL",
         yval = yval,
         ylim = ylim,
         conf_level = conf_level,
+        conf_type = conf_type,
         pval_method = pval_method,
         annot_surv_med = annot_surv_med,
         annot_coxph = annot_coxph,
@@ -381,9 +363,10 @@ tm_g_km <- function(label,
                       fixed = TRUE
                     ),
                     conf_level = teal.transform::choices_selected(c(0.95, 0.9, 0.8), 0.95, keep_order = TRUE),
+                    conf_type = teal.transform::choices_selected(c("plain", "log", "log-log"), "plain", TRUE),
                     font_size = c(11L, 1L, 30),
-                    control_annot_surv_med = control_surv_med_annot(),
-                    control_annot_coxph = control_coxph_annot(x = 0.27, y = 0.35, w = 0.3),
+                    control_annot_surv_med = tern::control_surv_med_annot(),
+                    control_annot_coxph = tern::control_coxph_annot(x = 0.27, y = 0.35, w = 0.3),
                     legend_pos = c(0.9, 0.5),
                     rel_height_plot = c(80L, 0L, 100L),
                     plot_height = c(800L, 400L, 5000L),
@@ -405,6 +388,7 @@ tm_g_km <- function(label,
   checkmate::assert_class(aval_var, "choices_selected")
   checkmate::assert_class(cnsr_var, "choices_selected")
   checkmate::assert_class(conf_level, "choices_selected")
+  checkmate::assert_class(conf_type, "choices_selected")
   checkmate::assert_numeric(plot_height, len = 3, any.missing = FALSE, finite = TRUE)
   checkmate::assert_numeric(plot_height[1], lower = plot_height[2], upper = plot_height[3], .var.name = "plot_height")
   checkmate::assert_numeric(plot_width, len = 3, any.missing = FALSE, null.ok = TRUE, finite = TRUE)
@@ -476,9 +460,10 @@ ui_g_km <- function(id, ...) {
     ),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c("arm_var", "paramcd", "strata_var", "facet_var", "aval_var", "cnsr_var")]),
       teal.transform::data_extract_ui(
         id = ns("paramcd"),
@@ -512,11 +497,10 @@ ui_g_km <- function(id, ...) {
       ),
       tags$div(
         class = "arm-comp-box",
-        tags$label("Compare Treatments"),
-        shinyWidgets::switchInput(
-          inputId = ns("compare_arms"),
-          value = !is.null(a$arm_ref_comp),
-          size = "mini"
+        bslib::input_switch(
+          id = ns("compare_arms"),
+          label = "Compare Treatments",
+          value = !is.null(a$arm_ref_comp)
         ),
         conditionalPanel(
           condition = paste0("input['", ns("compare_arms"), "']"),
@@ -545,9 +529,10 @@ ui_g_km <- function(id, ...) {
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "plot")),
       conditionalPanel(
         condition = paste0("input['", ns("compare_arms"), "']"),
-        teal.widgets::panel_group(
-          teal.widgets::panel_item(
-            "Comparison settings",
+        bslib::accordion(
+          open = TRUE,
+          bslib::accordion_panel(
+            title = "Comparison settings",
             radioButtons(
               ns("pval_method_coxph"),
               label = HTML(
@@ -577,9 +562,10 @@ ui_g_km <- function(id, ...) {
           )
         )
       ),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional plot settings",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional plot settings",
           textInput(
             inputId = ns("xticks"),
             label = "Specify break intervals for x-axis e.g. 0 ; 500"
@@ -627,6 +613,14 @@ ui_g_km <- function(id, ...) {
             a$conf_level$selected,
             multiple = FALSE,
             fixed = a$conf_level$fixed
+          ),
+          teal.widgets::optionalSelectInput(
+            ns("conf_type"),
+            "Confidence Interval Type",
+            a$conf_type$choices,
+            a$conf_type$selected,
+            multiple = FALSE,
+            fixed = a$conf_type$fixed
           ),
           textInput(ns("xlab"), "X-axis label", "Time"),
           teal.transform::data_extract_ui(
@@ -720,12 +714,20 @@ srv_g_km <- function(id,
       iv$add_rule("font_size", shinyvalidate::sv_gte(5, "Plot tables font size must be greater than or equal to 5"))
       iv$add_rule("ylim", shinyvalidate::sv_required("Please choose a range for y-axis limits"))
       iv$add_rule("conf_level", shinyvalidate::sv_required("Please choose a confidence level"))
+      iv$add_rule("conf_type", shinyvalidate::sv_required("Please choose a confidence interval type"))
       iv$add_rule(
         "conf_level",
         shinyvalidate::sv_between(
           0, 1,
           inclusive = c(FALSE, FALSE),
           message_fmt = "Confidence level must be between 0 and 1"
+        )
+      )
+      iv$add_rule(
+        "conf_type",
+        shinyvalidate::sv_in_set(
+          c("plain", "log", "log-log"),
+          message_fmt = "Confidence interval type must be one of {values_text}."
         )
       )
       iv$add_rule("xticks", shinyvalidate::sv_optional())
@@ -830,6 +832,7 @@ srv_g_km <- function(id,
         font_size = input$font_size,
         pval_method = input$pval_method_coxph,
         conf_level = as.numeric(input$conf_level),
+        conf_type = input$conf_type,
         ties = input$ties_coxph,
         xlab = input$xlab,
         yval = ifelse(input$yval == "Survival probability", "Survival", "Failure"),
@@ -845,7 +848,7 @@ srv_g_km <- function(id,
       id = "decorator",
       data = all_q,
       decorators = select_decorators(decorators, "plot"),
-      expr = print(plot)
+      expr = plot
     )
     plot_r <- reactive(decorated_all_q()[["plot"]])
 
@@ -884,7 +887,7 @@ srv_g_km <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

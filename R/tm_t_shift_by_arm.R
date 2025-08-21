@@ -20,21 +20,12 @@ template_shift_by_arm <- function(dataname,
                                   treatment_flag_var = "ONTRTFL",
                                   treatment_flag = "Y",
                                   aval_var = "ANRIND",
-                                  base_var = lifecycle::deprecated(),
                                   baseline_var = "BNRIND",
                                   na.rm = FALSE, # nolint: object_name.
-                                  na_level = default_na_str(),
+                                  na_level = tern::default_na_str(),
                                   add_total = FALSE,
                                   total_label = default_total_label(),
                                   basic_table_args = teal.widgets::basic_table_args()) {
-  if (lifecycle::is_present(base_var)) {
-    baseline_var <- base_var
-    warning(
-      "The `base_var` argument of `template_shift_by_arm()` is deprecated as of teal.modules.clinical 0.8.16. ",
-      "Please use the `baseline_var` argument instead.",
-      call. = FALSE
-    )
-  }
 
   checkmate::assert_string(dataname)
   checkmate::assert_string(parentname)
@@ -57,14 +48,14 @@ template_shift_by_arm <- function(dataname,
   data_list <- add_expr(
     data_list,
     substitute(
-      expr = parentname <- df_explicit_na(parentname, na_level = na_str),
+      expr = parentname <- tern::df_explicit_na(parentname, na_level = na_str),
       env = list(parentname = as.name(parentname), na_str = na_level)
     )
   )
   data_list <- add_expr(
     data_list,
     substitute(
-      expr = dataname <- df_explicit_na(dataname, na_level = na_str) %>%
+      expr = dataname <- tern::df_explicit_na(dataname, na_level = na_str) %>%
         dplyr::filter(treatment_flag_var == treatment_flag),
       env = list(
         dataname = as.name(dataname),
@@ -99,23 +90,25 @@ template_shift_by_arm <- function(dataname,
       layout_list,
       substitute(
         expr = expr_basic_table_args %>%
-          rtables::split_cols_by(visit_var, split_fun = drop_split_levels) %>% # temp solution for over arching column
+          rtables::split_cols_by(visit_var,
+            split_fun = rtables::drop_split_levels
+          ) %>% # temp solution for over arching column
           rtables::split_cols_by(aval_var) %>%
           rtables::split_rows_by(
             arm_var,
-            split_fun = add_overall_level(total_label, first = FALSE),
+            split_fun = rtables::add_overall_level(total_label, first = FALSE),
             label_pos = "topleft",
-            split_label = obj_label(dataname$arm_var)
+            split_label = rtables::obj_label(dataname$arm_var)
           ) %>%
-          add_rowcounts() %>%
-          analyze_vars(
+          tern::add_rowcounts() %>%
+          tern::analyze_vars(
             baseline_var,
             denom = "N_row",
             na_str = na_str,
             na.rm = na.rm,
             .stats = "count_fraction"
           ) %>%
-          append_varlabels(dataname, baseline_var, indent = 1L),
+          tern::append_varlabels(dataname, baseline_var, indent = 1L),
         env = list(
           aval_var = aval_var,
           arm_var = arm_var,
@@ -134,23 +127,25 @@ template_shift_by_arm <- function(dataname,
       layout_list,
       substitute(
         expr = expr_basic_table_args %>%
-          rtables::split_cols_by(visit_var, split_fun = drop_split_levels) %>% # temp solution for over arching column
+          rtables::split_cols_by(visit_var,
+            split_fun = rtables::drop_split_levels
+          ) %>% # temp solution for over arching column
           rtables::split_cols_by(aval_var) %>%
           rtables::split_rows_by(
             arm_var,
-            split_fun = drop_split_levels,
+            split_fun = rtables::drop_split_levels,
             label_pos = "topleft",
-            split_label = obj_label(dataname$arm_var)
+            split_label = rtables::obj_label(dataname$arm_var)
           ) %>%
-          add_rowcounts() %>%
-          analyze_vars(
+          tern::add_rowcounts() %>%
+          tern::analyze_vars(
             baseline_var,
             denom = "N_row",
             na_str = na_str,
             na.rm = na.rm,
             .stats = "count_fraction"
           ) %>%
-          append_varlabels(dataname, baseline_var, indent = 1L),
+          tern::append_varlabels(dataname, baseline_var, indent = 1L),
         env = list(
           aval_var = aval_var,
           arm_var = arm_var,
@@ -188,6 +183,7 @@ template_shift_by_arm <- function(dataname,
 #' @inheritParams module_arguments
 #' @inheritParams teal::module
 #' @inheritParams template_shift_by_arm
+#' @inheritParams template_arguments
 #'
 #' @inherit module_arguments return seealso
 #'
@@ -287,7 +283,7 @@ tm_t_shift_by_arm <- function(label,
                               ),
                               treatment_flag = teal.transform::choices_selected("Y"),
                               useNA = c("ifany", "no"), # nolint: object_name.
-                              na_level = default_na_str(),
+                              na_level = tern::default_na_str(),
                               add_total = FALSE,
                               total_label = default_total_label(),
                               pre_output = NULL,
@@ -296,14 +292,12 @@ tm_t_shift_by_arm <- function(label,
                               transformators = list(),
                               decorators = list()) {
   if (lifecycle::is_present(base_var)) {
-    baseline_var <- base_var
-    warning(
-      "The `base_var` argument of `tm_t_shift_by_arm()` is deprecated as of teal.modules.clinical 0.8.16. ",
-      "Please use the `baseline_var` argument instead.",
-      call. = FALSE
+    lifecycle::deprecate_stop( 
+      when = "0.8.16",
+      what = "tm_t_shift_by_arm(base_var)",
+      details = "Please use the `baseline_var` argument instead."
     )
-  } else {
-    base_var <- baseline_var # resolves missing argument error
+    baseline_var <- base_var
   }
 
   message("Initializing tm_t_shift_by_arm")
@@ -379,9 +373,10 @@ ui_shift_by_arm <- function(id, ...) {
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c(
         "arm_var", "paramcd_var", "paramcd", "aval_var", "baseline_var", "visit_var", "treamtment_flag_var"
       )]),
@@ -423,9 +418,10 @@ ui_shift_by_arm <- function(id, ...) {
         selected = a$useNA
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "table")),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional Variables Info",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional Variables Info",
           teal.transform::data_extract_ui(
             id = ns("treatment_flag_var"),
             label = "On Treatment Flag Variable",
@@ -579,7 +575,7 @@ srv_shift_by_arm <- function(id,
         dataname = "ANL",
         parentname = "ANL_ADSL",
         arm_var = names(merged$anl_input_r()$columns_source$arm_var),
-        paramcd = unlist(merged$anl_input_r()$filter)["vars_selected"],
+        paramcd = unlist(merged$anl_input_r()$filter_info)["vars_selected"],
         treatment_flag_var = names(merged$anl_input_r()$columns_source$treatment_flag_var),
         treatment_flag = input$treatment_flag,
         aval_var = names(merged$anl_input_r()$columns_source$aval_var),
@@ -636,7 +632,7 @@ srv_shift_by_arm <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

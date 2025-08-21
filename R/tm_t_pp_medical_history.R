@@ -36,7 +36,7 @@ template_medical_history <- function(dataname = "ANL",
         dplyr::select(mhbodsys, mhterm, mhdistat) %>%
         dplyr::arrange(mhbodsys) %>%
         dplyr::mutate_if(is.character, as.factor) %>%
-        dplyr::mutate_if(is.factor, function(x) explicit_na(x, "UNKNOWN")) %>%
+        dplyr::mutate_if(is.factor, function(x) tern::explicit_na(x, "UNKNOWN")) %>%
         dplyr::distinct() %>%
         `colnames<-`(labels)
 
@@ -54,7 +54,7 @@ template_medical_history <- function(dataname = "ANL",
         rtables::analyze_colvars(function(x) x[seq_along(x)]) %>%
         rtables::build_table(result_raw)
 
-      main_title(table) <- paste("Patient ID:", patient_id)
+      rtables::main_title(table) <- paste("Patient ID:", patient_id)
     }, env = list(
       dataname = as.name(dataname),
       mhbodsys = as.name(mhbodsys),
@@ -221,9 +221,10 @@ ui_t_medical_history <- function(id, ...) {
     ),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(ui_args[c("mhterm", "mhbodsys", "mhdistat")]),
       teal.widgets::optionalSelectInput(
         ns("patient_id"),
@@ -407,7 +408,7 @@ srv_t_medical_history <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

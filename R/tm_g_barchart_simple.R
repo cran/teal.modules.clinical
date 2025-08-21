@@ -222,6 +222,7 @@ tm_g_barchart_simple <- function(x = NULL,
       fill = fill,
       x_facet = x_facet,
       y_facet = y_facet,
+      label = label,
       plot_height = plot_height,
       plot_width = plot_width,
       ggplot2_args = ggplot2_args,
@@ -239,19 +240,17 @@ ui_g_barchart_simple <- function(id, ...) {
   is_single_dataset_value <- teal.transform::is_single_dataset(args$x, args$fill, args$x_facet, args$y_facet)
 
   tagList(
-    singleton(
-      tags$head(includeCSS(system.file("css/custom.css", package = "teal.modules.clinical")))
-    ),
     teal.widgets::standard_layout(
       output = teal.widgets::white_small_well(
         teal.widgets::plot_with_settings_ui(id = ns("myplot")),
-        uiOutput(ns("table"), class = "overflow-y-scroll max-h-250")
+        uiOutput(ns("table"), style = "overflow-y: scroll; max-height: 250px;")
       ),
       encoding = tags$div(
         ### Reporter
-        teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+        teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+        tags$br(), tags$br(),
         ###
-        tags$label("Encodings", class = "text-primary"),
+        tags$label("Encodings", class = "text-primary"), tags$br(),
         teal.transform::datanames_input(args[c("x", "fill", "x_facet", "y_facet")]),
         if (!is.null(args$x)) {
           teal.transform::data_extract_ui(
@@ -286,9 +285,10 @@ ui_g_barchart_simple <- function(id, ...) {
           )
         },
         ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(args$decorators, "plot")),
-        teal.widgets::panel_group(
-          teal.widgets::panel_item(
-            "Additional plot settings",
+        bslib::accordion(
+          open = TRUE,
+          bslib::accordion_panel(
+            title = "Additional plot settings",
             if (!is.null(args$fill)) {
               radioButtons(
                 inputId = ns("barlayout"),
@@ -352,13 +352,13 @@ ui_g_barchart_simple <- function(id, ...) {
             )
           )
         )
-      )
-    ),
-    forms = tagList(
-      teal.widgets::verbatim_popup_ui(ns("rcode"), button_label = "Show R code")
-    ),
-    pre_output = args$pre_output,
-    post_output = args$post_output
+      ),
+      forms = tagList(
+        teal.widgets::verbatim_popup_ui(ns("rcode"), button_label = "Show R code")
+      ),
+      pre_output = args$pre_output,
+      post_output = args$post_output
+    )
   )
 }
 
@@ -371,6 +371,7 @@ srv_g_barchart_simple <- function(id,
                                   fill,
                                   x_facet,
                                   y_facet,
+                                  label,
                                   plot_height,
                                   plot_width,
                                   ggplot2_args,
@@ -500,7 +501,7 @@ srv_g_barchart_simple <- function(id,
       groupby_vars <- as.list(r_groupby_vars()) # so $ access works below
 
       y_lab <- substitute(
-        column_annotation_label(counts, y_name),
+        teal.modules.clinical::column_annotation_label(counts, y_name),
         list(y_name = get_n_name(groupby_vars))
       )
 
@@ -550,14 +551,14 @@ srv_g_barchart_simple <- function(id,
       "decorator",
       data = all_q,
       decorators = select_decorators(decorators, "plot"),
-      expr = print(plot)
+      expr = plot
     )
 
     plot_r <- reactive(decorated_all_q_code()[["plot"]])
 
     output$table <- renderTable({
       req(iv_r()$is_valid())
-      teal.code::dev_suppress(all_q()[["counts"]])
+      all_q()[["counts"]]
     })
 
     # get grouping variables
@@ -594,7 +595,7 @@ srv_g_barchart_simple <- function(id,
     teal.widgets::verbatim_popup_srv(
       id = "rcode",
       verbatim_content = source_code_r,
-      title = "Bar Chart"
+      title = label
     )
 
     ### REPORTER
@@ -615,7 +616,7 @@ srv_g_barchart_simple <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })
@@ -752,7 +753,11 @@ make_barchart_simple_call <- function(y_name,
   # add legend for fill
   if (!is.null(fill_name)) {
     plot_args <- c(plot_args, bquote(
-      ggplot2::guides(fill = ggplot2::guide_legend(title = column_annotation_label(counts, .(fill_name))))
+      ggplot2::guides(
+        fill = ggplot2::guide_legend(
+          title = teal.modules.clinical::column_annotation_label(counts, .(fill_name))
+        )
+      )
     ))
   }
 

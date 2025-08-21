@@ -31,7 +31,7 @@ template_abnormality <- function(parentname,
                                  total_label = default_total_label(),
                                  exclude_base_abn = FALSE,
                                  drop_arm_levels = TRUE,
-                                 na_level = default_na_str(),
+                                 na_level = tern::default_na_str(),
                                  basic_table_args = teal.widgets::basic_table_args(),
                                  tbl_title) {
   checkmate::assert_string(dataname)
@@ -82,7 +82,7 @@ template_abnormality <- function(parentname,
   data_list <- add_expr(
     data_list,
     substitute(
-      dataname <- df_explicit_na(dataname, na_level = na_level),
+      dataname <- tern::df_explicit_na(dataname, na_level = na_level),
       env = list(dataname = as.name("anl"), na_level = na_level)
     )
   )
@@ -90,7 +90,7 @@ template_abnormality <- function(parentname,
   data_list <- add_expr(
     data_list,
     substitute(
-      parentname <- df_explicit_na(parentname, na_level = na_level),
+      parentname <- tern::df_explicit_na(parentname, na_level = na_level),
       env = list(parentname = as.name(parentname), na_level = na_level)
     )
   )
@@ -103,7 +103,7 @@ template_abnormality <- function(parentname,
     prep_list,
     substitute(
       # Define the map for layout using helper function h_map_for_count_abnormal
-      map <- h_map_for_count_abnormal(
+      map <- tern::h_map_for_count_abnormal(
         df = dataname,
         variables = list(anl = grade, split_rows = by_vars),
         abnormal = abnormal,
@@ -137,7 +137,7 @@ template_abnormality <- function(parentname,
         expr = expr_basic_table_args %>%
           rtables::split_cols_by(
             var = arm_var,
-            split_fun = add_overall_level(total_label, first = FALSE)
+            split_fun = rtables::add_overall_level(total_label, first = FALSE)
           ),
         env = list(
           arm_var = arm_var,
@@ -169,7 +169,7 @@ template_abnormality <- function(parentname,
           by_var,
           split_label = split_label,
           label_pos = "topleft",
-          split_fun = trim_levels_to_map(map = map)
+          split_fun = rtables::trim_levels_to_map(map = map)
         ),
         env = list(
           by_var = by_var,
@@ -183,14 +183,14 @@ template_abnormality <- function(parentname,
   layout_list <- add_expr(
     layout_list,
     substitute(
-      expr = count_abnormal(
+      expr = tern::count_abnormal(
         var = grade,
         abnormal = abnormal,
         variables = list(id = id_var, baseline = baseline_var),
         .indent_mods = 4L,
         exclude_base_abn = exclude_base_abn
       ) %>%
-        append_varlabels(dataname, grade, indent = indent_space),
+        tern::append_varlabels(dataname, grade, indent = indent_space),
       env = list(
         grade = grade,
         abnormal = abnormal,
@@ -353,7 +353,7 @@ tm_t_abnormality <- function(label,
                              drop_arm_levels = TRUE,
                              pre_output = NULL,
                              post_output = NULL,
-                             na_level = default_na_str(),
+                             na_level = tern::default_na_str(),
                              basic_table_args = teal.widgets::basic_table_args(),
                              transformators = list(),
                              decorators = list()) {
@@ -433,9 +433,10 @@ ui_t_abnormality <- function(id, ...) {
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(
         a[c("arm_var", "id_var", "by_vars", "grade", "baseline_var", "treatment_flag_var")]
       ),
@@ -464,9 +465,10 @@ ui_t_abnormality <- function(id, ...) {
         value = a$exclude_base_abn
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "table")),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional table settings",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional table settings",
           checkboxInput(
             ns("drop_arm_levels"),
             label = "Drop columns not in filtered analysis dataset",
@@ -474,9 +476,10 @@ ui_t_abnormality <- function(id, ...) {
           )
         )
       ),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional Variables Info",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional Variables Info",
           teal.transform::data_extract_ui(
             id = ns("id_var"),
             label = "Subject Identifier",
@@ -716,7 +719,7 @@ srv_t_abnormality <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

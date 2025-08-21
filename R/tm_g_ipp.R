@@ -35,21 +35,12 @@ template_g_ipp <- function(dataname = "ANL",
                            avalu_var = "AVALU",
                            id_var = "USUBJID",
                            visit_var = "AVISIT",
-                           base_var = lifecycle::deprecated(),
                            baseline_var = "BASE",
                            add_baseline_hline = FALSE,
                            separate_by_obs = FALSE,
                            ggplot2_args = teal.widgets::ggplot2_args(),
                            suppress_legend = FALSE,
                            add_avalu = TRUE) {
-  if (lifecycle::is_present(base_var)) {
-    baseline_var <- base_var
-    warning(
-      "The `base_var` argument of `template_g_ipp()` is deprecated as of teal.modules.clinical 0.8.16. ",
-      "Please use the `baseline_var` argument instead.",
-      call. = FALSE
-    )
-  }
 
   checkmate::assert_string(dataname)
   checkmate::assert_string(paramcd)
@@ -100,7 +91,7 @@ template_g_ipp <- function(dataname = "ANL",
     graph_list,
     substitute(
       expr = {
-        plot <- h_g_ipp(
+        plot <- tern::h_g_ipp(
           df = anl,
           xvar = visit,
           yvar = aval,
@@ -175,6 +166,7 @@ template_g_ipp <- function(dataname = "ANL",
 #' @inheritParams module_arguments
 #' @inheritParams teal::module
 #' @inheritParams template_g_ipp
+#' @inheritParams template_arguments
 #' @param arm_var ([teal.transform::choices_selected()])\cr object with
 #'   all available choices and preselected option for variable values that can be used as arm variable.
 #'
@@ -216,12 +208,13 @@ template_g_ipp <- function(dataname = "ANL",
 #'
 #' data <- teal_data()
 #' data <- within(data, {
+#'   library(dplyr)
 #'   ADSL <- tmc_ex_adsl %>%
 #'     slice(1:20) %>%
-#'     df_explicit_na()
+#'     tern::df_explicit_na()
 #'   ADLB <- tmc_ex_adlb %>%
 #'     filter(USUBJID %in% ADSL$USUBJID) %>%
-#'     df_explicit_na() %>%
+#'     tern::df_explicit_na() %>%
 #'     filter(AVISIT != "SCREENING")
 #' })
 #' join_keys(data) <- default_cdisc_join_keys[names(data)]
@@ -323,14 +316,11 @@ tm_g_ipp <- function(label,
                      transformators = list(),
                      decorators = list()) {
   if (lifecycle::is_present(base_var)) {
-    baseline_var <- base_var
-    warning(
-      "The `base_var` argument of `tm_g_ipp()` is deprecated as of teal.modules.clinical 0.8.16. ",
-      "Please use the `baseline_var` argument instead.",
-      call. = FALSE
+    lifecycle::deprecate_stop(
+      when = "0.8.16",
+      what = "tm_g_ipp(base_var)",
+      details = "Please use the `baseline_var` argument instead."
     )
-  } else {
-    base_var <- baseline_var # resolves missing argument error
   }
 
   message("Initializing tm_g_ipp")
@@ -411,9 +401,10 @@ ui_g_ipp <- function(id, ...) {
     output = teal.widgets::plot_with_settings_ui(id = ns("myplot")),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(
         a[c("arm_var", "aval_var", "avalu_var", "id_var", "visit_var", "paramcd", "baseline_var")]
       ),
@@ -460,9 +451,10 @@ ui_g_ipp <- function(id, ...) {
         is_single_dataset = is_single_dataset_value
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "plot")),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional plot settings",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional plot settings",
           checkboxInput(
             ns("add_baseline_hline"),
             "Add reference lines at baseline value",
@@ -648,7 +640,7 @@ srv_g_ipp <- function(id,
       id = "decorator",
       data = all_q,
       decorators = select_decorators(decorators, "plot"),
-      expr = print(plot)
+      expr = plot
     )
     plot_r <- reactive(decorated_all_q()[["plot"]])
 
@@ -686,7 +678,7 @@ srv_g_ipp <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

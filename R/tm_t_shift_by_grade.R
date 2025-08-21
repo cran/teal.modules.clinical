@@ -25,7 +25,7 @@ template_shift_by_grade <- function(parentname,
                                     drop_arm_levels = TRUE,
                                     add_total = FALSE,
                                     total_label = default_total_label(),
-                                    na_level = default_na_str(),
+                                    na_level = tern::default_na_str(),
                                     code_missing_baseline = FALSE,
                                     basic_table_args = teal.widgets::basic_table_args()) {
   checkmate::assert_string(dataname)
@@ -74,7 +74,7 @@ template_shift_by_grade <- function(parentname,
   data_list <- add_expr(
     data_list,
     substitute(
-      expr = dataname <- df_explicit_na(dataname, na_level = na_str),
+      expr = dataname <- tern::df_explicit_na(dataname, na_level = na_str),
       env = list(
         dataname = as.name("anl"),
         na_str = na_level
@@ -85,7 +85,7 @@ template_shift_by_grade <- function(parentname,
   data_list <- add_expr(
     data_list,
     substitute(
-      expr = parentname <- df_explicit_na(parentname, na_level = na_str),
+      expr = parentname <- tern::df_explicit_na(parentname, na_level = na_str),
       env = list(
         parentname = as.name(parentname),
         na_str = na_level
@@ -287,7 +287,7 @@ template_shift_by_grade <- function(parentname,
   y$data <- bracket_expr(data_list)
 
   # layout start
-  y$layout_prep <- quote(split_fun <- drop_split_levels)
+  y$layout_prep <- quote(split_fun <- rtables::drop_split_levels)
 
   basic_table_args$title <- "Grade Summary Table"
   basic_table_args$subtitles <- paste("Worst Flag Variable:", worst_flag_var)
@@ -406,7 +406,7 @@ template_shift_by_grade <- function(parentname,
   layout_list <- add_expr(
     layout_list,
     substitute(
-      expr = summarize_num_patients(
+      expr = tern::summarize_num_patients(
         var = id_var,
         .stats = c("unique_count")
       ),
@@ -427,13 +427,13 @@ template_shift_by_grade <- function(parentname,
   layout_list <- add_expr(
     layout_list,
     substitute(
-      expr = count_occurrences(
+      expr = tern::count_occurrences(
         vars = count_var,
         denom = "n",
         drop = TRUE,
         .indent_mods = 4L
       ) %>%
-        append_varlabels(dataname, count_var, indent = indent),
+        tern::append_varlabels(dataname, count_var, indent = indent),
       env = list(
         count_var = count_var,
         dataname = as.name("anl"),
@@ -594,7 +594,7 @@ tm_t_shift_by_grade <- function(label,
                                 drop_arm_levels = TRUE,
                                 pre_output = NULL,
                                 post_output = NULL,
-                                na_level = default_na_str(),
+                                na_level = tern::default_na_str(),
                                 code_missing_baseline = FALSE,
                                 basic_table_args = teal.widgets::basic_table_args(),
                                 transformators = list(),
@@ -675,9 +675,10 @@ ui_t_shift_by_grade <- function(id, ...) {
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(
         a[c("arm_var", "id_var", "visit_var", "paramcd", "worst_flag_var", "anl_toxgrade_var", "base_toxgrade_var")]
       ),
@@ -718,9 +719,10 @@ ui_t_shift_by_grade <- function(id, ...) {
         data_extract_spec = a$base_toxgrade_var,
         is_single_dataset = is_single_dataset_value
       ),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional table settings",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional table settings",
           checkboxInput(
             ns("drop_arm_levels"),
             label = "Drop columns not in filtered analysis dataset",
@@ -734,9 +736,10 @@ ui_t_shift_by_grade <- function(id, ...) {
         )
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "table")),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional Variables Info",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional Variables Info",
           teal.transform::data_extract_ui(
             id = ns("id_var"),
             label = "Subject Identifier",
@@ -939,7 +942,7 @@ srv_t_shift_by_grade <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

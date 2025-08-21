@@ -65,7 +65,7 @@ template_therapy <- function(dataname = "ANL",
 
       dataname[setdiff(cols_to_include, names(dataname))] <- NA
 
-      table <- dataname %>%
+      table_data <- dataname %>%
         dplyr::filter(atirel %in% c("CONCOMITANT", "PRIOR")) %>% # removed PRIOR_CONCOMITANT
         dplyr::select(dplyr::all_of(cols_to_include)) %>%
         dplyr::filter(!is.na(cmdecod)) %>%
@@ -81,11 +81,11 @@ template_therapy <- function(dataname = "ANL",
         dplyr::distinct() %>%
         dplyr::mutate(!!cmstdy_char := as.character(cmstdy_char), !!cmendy_char := as.character(cmendy_char)) %>%
         `colnames<-`(c(
-          col_labels(dataname, fill = TRUE)[c(cmindc_char, cmdecod_char)], "Dosage",
-          col_labels(dataname, fill = TRUE)[c(cmstdy_char, cmendy_char)]
+          teal.data::col_labels(dataname, fill = TRUE)[c(cmindc_char, cmdecod_char)], "Dosage",
+          teal.data::col_labels(dataname, fill = TRUE)[c(cmstdy_char, cmendy_char)]
         ))
-
-      table <- DT::datatable(table)
+      table <- rtables::df_to_tt(table_data)
+      table
     }, env = list(
       dataname = as.name(dataname),
       atirel = as.name(atirel),
@@ -244,8 +244,7 @@ template_therapy <- function(dataname = "ANL",
 #'
 #' This module generates the following objects, which can be modified in place using decorators::
 #' - `plot` (`ggplot`)
-#' - `table` (`datatables` - output of `DT::datatable()`)
-#'
+
 #' A Decorator is applied to the specific output using a named list of `teal_transform_module` objects.
 #' The name of this list corresponds to the name of the output to which the decorator is applied.
 #' See code snippet below:
@@ -254,8 +253,7 @@ template_therapy <- function(dataname = "ANL",
 #' tm_g_pp_therapy(
 #'    ..., # arguments for module
 #'    decorators = list(
-#'      plot = teal_transform_module(...), # applied only to `plot` output
-#'      table = teal_transform_module(...) # applied only to `table` output
+#'      plot = teal_transform_module(...) # applied only to `plot` output
 #'    )
 #' )
 #' ```
@@ -396,7 +394,7 @@ tm_g_pp_therapy <- function(label,
   checkmate::assert_class(pre_output, classes = "shiny.tag", null.ok = TRUE)
   checkmate::assert_class(post_output, classes = "shiny.tag", null.ok = TRUE)
   checkmate::assert_class(ggplot2_args, "ggplot2_args")
-  assert_decorators(decorators, names = c("plot", "table"))
+  assert_decorators(decorators, names = "plot")
 
   args <- as.list(environment())
   data_extract_list <- list(
@@ -461,9 +459,10 @@ ui_g_therapy <- function(id, ...) {
     ),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(ui_args[c(
         "atirel", "cmdecod", "cmindc", "cmdose", "cmtrt",
         "cmdosu", "cmroute", "cmdosfrq", "cmstdy", "cmendy"
@@ -534,11 +533,10 @@ ui_g_therapy <- function(id, ...) {
         data_extract_spec = ui_args$cmendy,
         is_single_dataset = is_single_dataset_value
       ),
-      ui_decorate_teal_data(ns("d_table"), decorators = select_decorators(ui_args$decorators, "table")),
       ui_decorate_teal_data(ns("d_plot"), decorators = select_decorators(ui_args$decorators, "plot")),
-      teal.widgets::panel_item(
+      bslib::accordion_panel(
         title = "Plot settings",
-        collapsed = TRUE,
+        open = TRUE,
         teal.widgets::optionalSliderInputValMinMax(
           ns("font_size"),
           "Font Size",
@@ -700,30 +698,30 @@ srv_g_therapy <- function(id,
       paste("<h5><b>Patient ID:", all_q()[["pt_id"]], "</b></h5>")
     })
 
-    decorated_all_q_table <- srv_decorate_teal_data(
-      "d_table",
-      data = all_q,
-      decorators = select_decorators(decorators, "table"),
-      expr = table
-    )
+    table_r <- reactive({
+      q <- req(all_q())
 
-    output$therapy_table <- DT::renderDataTable(
-      expr = {
-        teal.code::dev_suppress(decorated_all_q_table()[["table"]])
-      },
-      options = list(pageLength = input$therapy_table_rows)
-    )
+      list(
+        html = DT::datatable(
+          data = q[["table_data"]],
+          options = list(pageLength = input$therapy_table_rows)
+        ),
+        report = q[["table"]]
+      )
+    })
+
+    output$therapy_table <- DT::renderDataTable(table_r()[["html"]])
 
     decorated_all_q_plot <- srv_decorate_teal_data(
       "d_plot",
-      data = decorated_all_q_table,
+      data = all_q,
       decorators = select_decorators(decorators, "plot"),
-      expr = print(plot)
+      expr = plot
     )
 
     plot_r <- reactive({
       req(iv_r()$is_valid())
-      decorated_all_q_plot()[["plot"]]
+      req(decorated_all_q_plot())[["plot"]]
     })
 
     pws <- teal.widgets::plot_with_settings_srv(
@@ -751,7 +749,7 @@ srv_g_therapy <- function(id,
           filter_panel_api = filter_panel_api
         )
         card$append_text("Table", "header3")
-        card$append_table(teal.code::dev_suppress(all_q()[["table"]]))
+        card$append_table(table_r()[["report"]])
         card$append_text("Plot", "header3")
         card$append_plot(plot_r(), dim = pws$dim())
         if (!comment == "") {
@@ -761,7 +759,7 @@ srv_g_therapy <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

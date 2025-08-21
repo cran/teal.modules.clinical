@@ -94,7 +94,7 @@ template_forest_rsp <- function(dataname = "ANL",
   anl_list <- add_expr(
     anl_list,
     substitute_names(
-      expr = dplyr::mutate(arm_var = combine_levels(arm_var, levels = comp_arm)),
+      expr = dplyr::mutate(arm_var = tern::combine_levels(arm_var, levels = comp_arm)),
       names = list(arm_var = as.name(arm_var)),
       others = list(comp_arm = comp_arm)
     )
@@ -125,7 +125,7 @@ template_forest_rsp <- function(dataname = "ANL",
   parent_list <- add_expr(
     parent_list,
     substitute_names(
-      expr = dplyr::mutate(arm_var = combine_levels(arm_var, levels = comp_arm)),
+      expr = dplyr::mutate(arm_var = tern::combine_levels(arm_var, levels = comp_arm)),
       names = list(arm_var = as.name(arm_var)),
       others = list(comp_arm = comp_arm)
     )
@@ -149,7 +149,7 @@ template_forest_rsp <- function(dataname = "ANL",
   summary_list <- add_expr(
     summary_list,
     substitute(
-      expr = df <- extract_rsp_subgroups(
+      expr = df <- tern::extract_rsp_subgroups(
         variables = list(
           rsp = "is_rsp", arm = arm_var, subgroups = subgroup_var, strata = strata_var
         ),
@@ -171,7 +171,7 @@ template_forest_rsp <- function(dataname = "ANL",
   # Table output.
   y$table <- substitute(
     expr = result <- rtables::basic_table() %>%
-      tabulate_rsp_subgroups(df, vars = stats, riskdiff = riskdiff),
+      tern::tabulate_rsp_subgroups(df, vars = stats, riskdiff = riskdiff),
     env = list(stats = stats, riskdiff = riskdiff)
   )
 
@@ -191,7 +191,7 @@ template_forest_rsp <- function(dataname = "ANL",
     plot_list,
     substitute(
       expr = {
-        f <- g_forest(
+        f <- tern::g_forest(
           tbl = result,
           col_symbol_size = col_s_size,
           font_size = font_size,
@@ -449,9 +449,10 @@ ui_g_forest_rsp <- function(id, ...) {
     output = teal.widgets::plot_with_settings_ui(id = ns("myplot")),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c("arm_var", "paramcd", "aval_var", "subgroup_var", "strata_var")]),
       teal.transform::data_extract_ui(
         id = ns("paramcd"),
@@ -498,9 +499,10 @@ ui_g_forest_rsp <- function(id, ...) {
         is_single_dataset = is_single_dataset_value
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "plot")),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
-          "Additional plot settings",
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "Additional plot settings",
           teal.widgets::optionalSelectInput(
             inputId = ns("conf_level"),
             label = "Confidence Level",
@@ -788,7 +790,10 @@ srv_g_forest_rsp <- function(id,
       id = "decorator",
       data = all_q,
       decorators = select_decorators(decorators, "plot"),
-      expr = print(plot)
+      expr = {
+        table
+        plot
+      }
     )
 
     plot_r <- reactive({
@@ -834,7 +839,7 @@ srv_g_forest_rsp <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

@@ -15,19 +15,10 @@ template_vitals <- function(dataname = "ANL",
                             paramcd = "PARAMCD",
                             paramcd_levels = c("SYSBP", "DIABP", "PUL", "RESP", "OXYSAT", "WGHT", "TEMP"),
                             xaxis = "ADY",
-                            aval = lifecycle::deprecated(),
                             aval_var = "AVAL",
                             patient_id,
                             font_size = 12L,
                             ggplot2_args = teal.widgets::ggplot2_args()) {
-  if (lifecycle::is_present(aval)) {
-    aval_var <- aval
-    warning(
-      "The `aval` argument of `template_vitals()` is deprecated as of teal.modules.clinical 0.8.16. ",
-      "Please use the `aval_var` argument instead.",
-      call. = FALSE
-    )
-  }
 
   checkmate::assert_string(dataname)
   checkmate::assert_string(paramcd)
@@ -138,7 +129,7 @@ template_vitals <- function(dataname = "ANL",
             ggplot2::aes(x = x, y = y, label = label, color = color),
             alpha = 1,
             nudge_y = 2.2,
-            size = font_size_var / 3.5,
+            linewidth = font_size_var / 3.5,
             show.legend = FALSE
           ) +
           ggplot2::geom_hline(
@@ -205,6 +196,7 @@ template_vitals <- function(dataname = "ANL",
 #' @inheritParams module_arguments
 #' @inheritParams teal::module
 #' @inheritParams template_vitals
+#' @inheritParams template_arguments
 #' @param xaxis ([teal.transform::choices_selected()])\cr object with all
 #'   available choices and preselected option for the time variable from `dataname` to be put on the plot x-axis.
 #'
@@ -299,14 +291,11 @@ tm_g_pp_vitals <- function(label,
                            transformators = list(),
                            decorators = list()) {
   if (lifecycle::is_present(aval)) {
-    aval_var <- aval
-    warning(
-      "The `aval` argument of `tm_g_pp_vitals()` is deprecated as of teal.modules.clinical 0.8.16. ",
-      "Please use the `aval_var` argument instead.",
-      call. = FALSE
+    lifecycle::deprecate_stop(
+      when = "0.8.16",
+      what = "tm_g_pp_vitals(aval)",
+      with = "tm_g_pp_vitals(aval_var)"
     )
-  } else {
-    aval <- aval_var # resolves missing argument error
   }
 
   message("Initializing tm_g_pp_vitals")
@@ -378,9 +367,10 @@ ui_g_vitals <- function(id, ...) {
     output = teal.widgets::plot_with_settings_ui(id = ns("vitals_plot")),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(ui_args[c("paramcd", "aval_var", "xaxis")]),
       teal.widgets::optionalSelectInput(
         ns("patient_id"),
@@ -408,9 +398,9 @@ ui_g_vitals <- function(id, ...) {
         is_single_dataset = is_single_dataset_value
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(ui_args$decorators, "plot")),
-      teal.widgets::panel_item(
+      bslib::accordion_panel(
         title = "Plot settings",
-        collapsed = TRUE,
+        open = TRUE,
         teal.widgets::optionalSliderInputValMinMax(
           ns("font_size"), "Font Size", ui_args$font_size,
           ticks = FALSE, step = 1
@@ -588,7 +578,7 @@ srv_g_vitals <- function(id,
       id = "decorator",
       data = all_q,
       decorators = select_decorators(decorators, "plot"),
-      expr = print(plot)
+      expr = plot
     )
     plot_r <- reactive(decorated_all_q()[["plot"]])
 
@@ -625,7 +615,7 @@ srv_g_vitals <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

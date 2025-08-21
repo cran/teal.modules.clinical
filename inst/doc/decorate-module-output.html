@@ -810,11 +810,17 @@ of the <code>DT</code> package to learn more about extending the
 <span id="cb3-79"><a href="#cb3-79" tabindex="-1"></a>      <span class="at">decorators =</span> <span class="fu">list</span>(<span class="at">table =</span> <span class="fu">dt_table_decorator</span>())</span>
 <span id="cb3-80"><a href="#cb3-80" tabindex="-1"></a>    )</span>
 <span id="cb3-81"><a href="#cb3-81" tabindex="-1"></a>  )</span>
-<span id="cb3-82"><a href="#cb3-82" tabindex="-1"></a>)</span>
-<span id="cb3-83"><a href="#cb3-83" tabindex="-1"></a></span>
-<span id="cb3-84"><a href="#cb3-84" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">interactive</span>()) {</span>
-<span id="cb3-85"><a href="#cb3-85" tabindex="-1"></a>  <span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span>
-<span id="cb3-86"><a href="#cb3-86" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb3-82"><a href="#cb3-82" tabindex="-1"></a>)</span></code></pre></div>
+<pre><code>## Warning: The `decorators` argument of `tm_t_pp_laboratory()` is deprecated as of
+## teal.modules.clinical 0.11.0.
+## ℹ Decorators functionality was removed from this module. The `decorators`
+##   argument will be ignored.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">interactive</span>()) {</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 
 
