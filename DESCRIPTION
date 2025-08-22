@@ -1,6 +1,6 @@
 Package: teal.modules.clinical
 Title: 'teal' Modules for Standard Clinical Outputs
-Version: 0.11.0
+Version: 0.11.1
 Date: 2025-08-20
 Authors@R: c(
     person("Joe", "Zhu", , "joe.zhu@roche.com", role = "aut",
@@ -46,7 +46,7 @@ Suggests: forcats (>= 1.0.0), knitr (>= 1.42), logger (>= 0.4.0),
         lubridate (>= 1.7.9), nestcolor (>= 0.1.0), pkgload (>= 1.4.0),
         roxy.shinylive (>= 1.0.0), rvest (>= 1.0.4), shinytest2 (>=
         0.4.1), styler (>= 1.10.3), testthat (>= 3.2.3), withr (>=
-        3.3.0)
+        3.0.0)
 VignetteBuilder: knitr, rmarkdown
 Config/Needs/verdepcheck: insightsengineering/teal,
         insightsengineering/teal.slice,
@@ -73,7 +73,7 @@ Language: en-US
 LazyData: true
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2025-08-21 18:45:33 UTC; unardid
+Packaged: 2025-08-22 00:21:55 UTC; unardid
 Author: Joe Zhu [aut] (ORCID: <https://orcid.org/0000-0001-7566-2787>),
   Jana Stoilova [aut],
   Davide Garolini [aut],
@@ -92,4 +92,4 @@ Author: Joe Zhu [aut] (ORCID: <https://orcid.org/0000-0001-7566-2787>),
   F. Hoffmann-La Roche AG [cph, fnd]
 Maintainer: Dawid Kaledkowski <dawid.kaledkowski@roche.com>
 Repository: CRAN
-Date/Publication: 2025-08-21 19:10:02 UTC
+Date/Publication: 2025-08-22 09:30:02 UTC
