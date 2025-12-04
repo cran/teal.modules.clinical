@@ -11,20 +11,21 @@
 #'
 #' @keywords internal
 control_tte <- function(
-    surv_time = list(
-      conf_level = 0.95,
-      conf_type = "plain",
-      quantiles = c(0.25, 0.75)
-    ),
-    coxph = list(
-      pval_method = "log-rank",
-      ties = "efron",
-      conf_level = 0.95
-    ),
-    surv_timepoint = tern::control_surv_timepoint(
-      conf_level = 0.95,
-      conf_type = c("plain", "none", "log", "log-log")
-    )) {
+  surv_time = list(
+    conf_level = 0.95,
+    conf_type = "plain",
+    quantiles = c(0.25, 0.75)
+  ),
+  coxph = list(
+    pval_method = "log-rank",
+    ties = "efron",
+    conf_level = 0.95
+  ),
+  surv_timepoint = tern::control_surv_timepoint(
+    conf_level = 0.95,
+    conf_type = c("plain", "none", "log", "log-log")
+  )
+) {
   list(
     surv_time = do.call("control_surv_time", surv_time, envir = getNamespace("tern")),
     coxph = do.call("control_coxph", coxph, envir = getNamespace("tern")),
@@ -412,6 +413,8 @@ template_tte <- function(dataname = "ANL",
 #' To learn more please refer to the vignette
 #' `vignette("transform-module-output", package = "teal")` or the [`teal::teal_transform_module()`] documentation.
 #'
+#' @inheritSection teal::example_module Reporting
+#'
 #' @details
 #' * The core functionality of this module is based on [tern::coxph_pairwise()], [tern::surv_timepoint()],
 #'   and [tern::surv_time()] from the `tern` package.
@@ -594,10 +597,6 @@ ui_t_tte <- function(id, ...) {
   teal.widgets::standard_layout(
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
-      ### Reporter
-      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
-      tags$br(), tags$br(),
-      ###
       tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(
         a[c("arm_var", "paramcd", "aval_var", "cnsr_var", "strata_var", "event_desc_var")]
@@ -716,49 +715,48 @@ ui_t_tte <- function(id, ...) {
           )
         )
       ),
-      bslib::accordion_panel(
-        "Additional table settings",
+      bslib::accordion(
         open = TRUE,
-        teal.widgets::optionalSelectInput(
-          inputId = ns("conf_level_survfit"),
-          label = HTML(
-            paste(
-              "Confidence Level for ",
-              tags$span(class = "text-primary", "Survfit"),
-              " (KM Median Estimate & Event Free Rate)",
-              sep = ""
-            )
+        bslib::accordion_panel(
+          "Additional table settings",
+          teal.widgets::optionalSelectInput(
+            inputId = ns("conf_level_survfit"),
+            label = HTML(
+              paste(
+                "Confidence Level for ",
+                tags$span(class = "text-primary", "Survfit"),
+                " (KM Median Estimate & Event Free Rate)",
+                sep = ""
+              )
+            ),
+            a$conf_level_survfit$choices,
+            a$conf_level_survfit$selected,
+            multiple = FALSE,
+            fixed = a$conf_level_survfit$fixed
           ),
-          a$conf_level_survfit$choices,
-          a$conf_level_survfit$selected,
-          multiple = FALSE,
-          fixed = a$conf_level_survfit$fixed
-        ),
-        radioButtons(
-          ns("conf_type_survfit"),
-          "Confidence Level Type for Survfit",
-          choices = c("plain", "log", "log-log"),
-          selected = "plain"
-        ),
-        sliderInput(
-          inputId = ns("probs_survfit"),
-          label = "KM Estimate Percentiles",
-          min = 0.01,
-          max = 0.99,
-          value = c(0.25, 0.75),
-          width = "100%"
-        ),
-        teal.transform::data_extract_ui(
-          id = ns("time_unit_var"),
-          label = "Time Unit Variable",
-          data_extract_spec = a$time_unit_var,
-          is_single_dataset = is_single_dataset_value
+          radioButtons(
+            ns("conf_type_survfit"),
+            "Confidence Level Type for Survfit",
+            choices = c("plain", "log", "log-log"),
+            selected = "plain"
+          ),
+          sliderInput(
+            inputId = ns("probs_survfit"),
+            label = "KM Estimate Percentiles",
+            min = 0.01,
+            max = 0.99,
+            value = c(0.25, 0.75),
+            width = "100%"
+          ),
+          teal.transform::data_extract_ui(
+            id = ns("time_unit_var"),
+            label = "Time Unit Variable",
+            data_extract_spec = a$time_unit_var,
+            is_single_dataset = is_single_dataset_value
+          )
         )
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "table")),
-    ),
-    forms = tagList(
-      teal.widgets::verbatim_popup_ui(ns("rcode"), button_label = "Show R code")
     ),
     pre_output = a$pre_output,
     post_output = a$post_output
@@ -768,8 +766,6 @@ ui_t_tte <- function(id, ...) {
 #' @keywords internal
 srv_t_tte <- function(id,
                       data,
-                      filter_panel_api,
-                      reporter,
                       arm_var,
                       paramcd,
                       aval_var,
@@ -786,8 +782,6 @@ srv_t_tte <- function(id,
                       na_level,
                       basic_table_args,
                       decorators) {
-  with_reporter <- !missing(reporter) && inherits(reporter, "Reporter")
-  with_filter <- !missing(filter_panel_api) && inherits(filter_panel_api, "FilterPanelAPI")
   checkmate::assert_class(data, "reactive")
   checkmate::assert_class(shiny::isolate(data()), "teal_data")
   moduleServer(id, function(input, output, session) {
@@ -875,7 +869,13 @@ srv_t_tte <- function(id,
     )
 
     anl_q <- reactive({
-      data() %>%
+      obj <- data()
+      teal.reporter::teal_card(obj) <-
+        c(
+          teal.reporter::teal_card(obj),
+          teal.reporter::teal_card("## Module's output(s)")
+        )
+      obj %>%
         teal.code::eval_code(as.expression(anl_merge_inputs()$expr)) %>%
         teal.code::eval_code(as.expression(adsl_merge_inputs()$expr))
     })
@@ -976,7 +976,9 @@ srv_t_tte <- function(id,
         basic_table_args = basic_table_args
       )
 
-      anl_q() %>% teal.code::eval_code(as.expression(unlist(my_calls)))
+      obj <- anl_q()
+      teal.reporter::teal_card(obj) <- c(teal.reporter::teal_card(obj), "### Table")
+      teal.code::eval_code(obj, as.expression(unlist(my_calls)))
     })
 
     decorated_table_q <- srv_decorate_teal_data(
@@ -990,34 +992,6 @@ srv_t_tte <- function(id,
 
     teal.widgets::table_with_settings_srv(id = "table", table_r = table_r)
 
-    # Render R code
-    source_code_r <- reactive(teal.code::get_code(req(decorated_table_q())))
-    teal.widgets::verbatim_popup_srv(
-      id = "rcode",
-      verbatim_content = source_code_r,
-      title = label
-    )
-
-    ### REPORTER
-    if (with_reporter) {
-      card_fun <- function(comment, label) {
-        card <- teal::report_card_template(
-          title = "Time To Event Table",
-          label = label,
-          with_filter = with_filter,
-          filter_panel_api = filter_panel_api
-        )
-        card$append_text("Table", "header3")
-        card$append_table(table_r())
-        if (!comment == "") {
-          card$append_text("Comment", "header3")
-          card$append_text(comment)
-        }
-        card$append_src(source_code_r())
-        card
-      }
-      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
-    }
-    ###
+    decorated_table_q
   })
 }

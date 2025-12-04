@@ -372,6 +372,7 @@ template_patient_timeline <- function(dataname = "ANL",
 #' To learn more please refer to the vignette
 #' `vignette("transform-module-output", package = "teal")` or the [`teal::teal_transform_module()`] documentation.
 #'
+#' @inheritSection teal::example_module Reporting
 #'
 #' @examplesShinylive
 #' library(teal.modules.clinical)
@@ -380,13 +381,14 @@ template_patient_timeline <- function(dataname = "ANL",
 #'
 #' @examples
 #' library(nestcolor)
-#' library(dplyr)
 #'
 #' data <- teal_data()
 #' data <- within(data, {
+#'   library(teal.modules.clinical)
+#'   library(formatters)
+#'   library(dplyr)
 #'   ADAE <- tmc_ex_adae
-#'   ADSL <- tmc_ex_adsl %>%
-#'     filter(USUBJID %in% ADAE$USUBJID)
+#'   ADSL <- filter(tmc_ex_adsl, USUBJID %in% ADAE$USUBJID)
 #'   ADCM <- tmc_ex_adcm %>%
 #'     mutate(
 #'       CMSTDY = case_when(
@@ -601,10 +603,6 @@ ui_g_patient_timeline <- function(id, ...) {
   teal.widgets::standard_layout(
     output = teal.widgets::plot_with_settings_ui(id = ns("patient_timeline_plot")),
     encoding = tags$div(
-      ### Reporter
-      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
-      tags$br(), tags$br(),
-      ###
       tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(
         ui_args[c(
@@ -703,20 +701,19 @@ ui_g_patient_timeline <- function(id, ...) {
         )
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(ui_args$decorators, "plot")),
-      bslib::accordion_panel(
-        title = "Plot settings",
+      bslib::accordion(
         open = TRUE,
-        teal.widgets::optionalSliderInputValMinMax(
-          ns("font_size"),
-          "Font Size",
-          ui_args$font_size,
-          ticks = FALSE,
-          step = 1
+        bslib::accordion_panel(
+          title = "Plot settings",
+          teal.widgets::optionalSliderInputValMinMax(
+            ns("font_size"),
+            "Font Size",
+            ui_args$font_size,
+            ticks = FALSE,
+            step = 1
+          )
         )
       )
-    ),
-    forms = tagList(
-      teal.widgets::verbatim_popup_ui(ns("rcode"), button_label = "Show R code")
     ),
     pre_output = ui_args$pre_output,
     post_output = ui_args$post_output
@@ -726,8 +723,6 @@ ui_g_patient_timeline <- function(id, ...) {
 #' @keywords internal
 srv_g_patient_timeline <- function(id,
                                    data,
-                                   reporter,
-                                   filter_panel_api,
                                    dataname_adae,
                                    dataname_adcm,
                                    parentname,
@@ -747,8 +742,6 @@ srv_g_patient_timeline <- function(id,
                                    label,
                                    ggplot2_args,
                                    decorators) {
-  with_reporter <- !missing(reporter) && inherits(reporter, "Reporter")
-  with_filter <- !missing(filter_panel_api) && inherits(filter_panel_api, "FilterPanelAPI")
   checkmate::assert_class(data, "reactive")
   checkmate::assert_class(isolate(data()), "teal_data")
 
@@ -836,8 +829,13 @@ srv_g_patient_timeline <- function(id,
     )
 
     anl_q <- reactive({
-      data() %>%
-        teal.code::eval_code(as.expression(anl_inputs()$expr))
+      obj <- data()
+      teal.reporter::teal_card(obj) <-
+        c(
+          teal.reporter::teal_card(obj),
+          teal.reporter::teal_card("## Module's output(s)")
+        )
+      obj %>% teal.code::eval_code(code = as.expression(anl_inputs()$expr))
     })
 
     all_q <- reactive({
@@ -939,8 +937,9 @@ srv_g_patient_timeline <- function(id,
           )
         )
       )
-
-      teal.code::eval_code(object = qenv, as.expression(patient_timeline_calls))
+      obj <- qenv
+      teal.reporter::teal_card(obj) <- c(teal.reporter::teal_card(obj), "### Plot")
+      teal.code::eval_code(object = obj, as.expression(patient_timeline_calls))
     })
 
     decorated_all_q <- srv_decorate_teal_data(
@@ -959,34 +958,6 @@ srv_g_patient_timeline <- function(id,
       width = plot_width
     )
 
-    # Render R code
-    source_code_r <- reactive(teal.code::get_code(req(decorated_all_q())))
-    teal.widgets::verbatim_popup_srv(
-      id = "rcode",
-      verbatim_content = source_code_r,
-      title = label
-    )
-
-    ### REPORTER
-    if (with_reporter) {
-      card_fun <- function(comment, label) {
-        card <- teal::report_card_template(
-          title = "Patient Profile Timeline Plot",
-          label = label,
-          with_filter = with_filter,
-          filter_panel_api = filter_panel_api
-        )
-        card$append_text("Plot", "header3")
-        card$append_plot(plot_r(), dim = pws$dim())
-        if (!comment == "") {
-          card$append_text("Comment", "header3")
-          card$append_text(comment)
-        }
-        card$append_src(source_code_r())
-        card
-      }
-      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
-    }
-    ###
+    set_chunk_dims(pws, decorated_all_q)
   })
 }

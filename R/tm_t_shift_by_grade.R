@@ -496,6 +496,8 @@ template_shift_by_grade <- function(parentname,
 #' To learn more please refer to the vignette
 #' `vignette("transform-module-output", package = "teal")` or the [`teal::teal_transform_module()`] documentation.
 #'
+#' @inheritSection teal::example_module Reporting
+#'
 #' @examplesShinylive
 #' library(teal.modules.clinical)
 #' interactive <- function() TRUE
@@ -674,10 +676,6 @@ ui_t_shift_by_grade <- function(id, ...) {
   teal.widgets::standard_layout(
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
-      ### Reporter
-      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
-      tags$br(), tags$br(),
-      ###
       tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(
         a[c("arm_var", "id_var", "visit_var", "paramcd", "worst_flag_var", "anl_toxgrade_var", "base_toxgrade_var")]
@@ -757,9 +755,6 @@ ui_t_shift_by_grade <- function(id, ...) {
         )
       )
     ),
-    forms = tagList(
-      teal.widgets::verbatim_popup_ui(ns("rcode"), button_label = "Show R code")
-    ),
     pre_output = a$pre_output,
     post_output = a$post_output
   )
@@ -768,8 +763,6 @@ ui_t_shift_by_grade <- function(id, ...) {
 #' @keywords internal
 srv_t_shift_by_grade <- function(id,
                                  data,
-                                 reporter,
-                                 filter_panel_api,
                                  dataname,
                                  parentname,
                                  arm_var,
@@ -786,8 +779,6 @@ srv_t_shift_by_grade <- function(id,
                                  label,
                                  basic_table_args,
                                  decorators) {
-  with_reporter <- !missing(reporter) && inherits(reporter, "Reporter")
-  with_filter <- !missing(filter_panel_api) && inherits(filter_panel_api, "FilterPanelAPI")
   checkmate::assert_class(data, "reactive")
   checkmate::assert_class(shiny::isolate(data()), "teal_data")
 
@@ -836,7 +827,13 @@ srv_t_shift_by_grade <- function(id,
     )
 
     anl_q <- reactive({
-      data() %>%
+      obj <- data()
+      teal.reporter::teal_card(obj) <-
+        c(
+          teal.reporter::teal_card(obj),
+          teal.reporter::teal_card("## Module's output(s)")
+        )
+      obj %>%
         teal.code::eval_code(as.expression(anl_inputs()$expr)) %>%
         teal.code::eval_code(as.expression(adsl_inputs()$expr))
     })
@@ -872,6 +869,61 @@ srv_t_shift_by_grade <- function(id,
         ),
         arm_var = input_arm_var
       )
+
+      # Additional validation for tm_t_shift_by_grade specific issues
+      # Check if worst flag filtering will result in non-empty dataset
+      if (input_worst_flag_var %in% names(anl_filtered) && length(input$worst_flag_indicator) > 0) {
+        available_worst_flag_values <- unique(anl_filtered[[input_worst_flag_var]])
+        teal::validate_in(
+          input$worst_flag_indicator,
+          available_worst_flag_values,
+          paste0(
+            "The selected worst flag indicator '", input$worst_flag_indicator,
+            "' is not found in the filtered data. Available values: ",
+            paste(available_worst_flag_values, collapse = ", ")
+          )
+        )
+
+        # Check if filtering by worst flag will result in any records
+        worst_flag_filtered_data <- anl_filtered[anl_filtered[[input_worst_flag_var]] == input$worst_flag_indicator, ]
+        validate(
+          shiny::need(
+            nrow(worst_flag_filtered_data) > 0,
+            paste0(
+              "No records found with worst flag indicator '", input$worst_flag_indicator,
+              "' in variable '", input_worst_flag_var, "'. Please check your data or filters."
+            )
+          )
+        )
+      }
+
+      # Check if selected PARAMCD values exist in the filtered dataset
+      if (length(input_paramcd) > 0 && input_paramcd_var %in% names(anl_filtered)) {
+        available_paramcd_values <- unique(anl_filtered[[input_paramcd_var]])
+        teal::validate_in(
+          input_paramcd,
+          available_paramcd_values,
+          paste0(
+            "The following selected lab parameters are not available in the filtered dataset: ",
+            paste(setdiff(input_paramcd, available_paramcd_values), collapse = ", "),
+            ". Available parameters: ",
+            paste(available_paramcd_values, collapse = ", ")
+          )
+        )
+
+        # Check if records exist for the selected PARAMCD values
+        paramcd_filtered_data <- anl_filtered[anl_filtered[[input_paramcd_var]] %in% input_paramcd, ]
+        validate(
+          shiny::need(
+            nrow(paramcd_filtered_data) > 0,
+            paste0(
+              "No records found for the selected lab parameters: ",
+              paste(input_paramcd, collapse = ", "),
+              ". Please check your data or filters."
+            )
+          )
+        )
+      }
     })
 
     # Generate r code for the analysis.
@@ -897,7 +949,9 @@ srv_t_shift_by_grade <- function(id,
         basic_table_args = basic_table_args
       )
 
-      teal.code::eval_code(merged$anl_q(), as.expression(unlist(my_calls)))
+      obj <- merged$anl_q()
+      teal.reporter::teal_card(obj) <- c(teal.reporter::teal_card(obj), "### Table")
+      teal.code::eval_code(obj, as.expression(unlist(my_calls)))
     })
 
     # Decoration of table output.
@@ -916,34 +970,7 @@ srv_t_shift_by_grade <- function(id,
       table_r = table_r
     )
 
-    # Render R code.
-    source_code_r <- reactive(teal.code::get_code(req(decorated_table_q())))
-    teal.widgets::verbatim_popup_srv(
-      id = "rcode",
-      verbatim_content = source_code_r,
-      title = label
-    )
 
-    ### REPORTER
-    if (with_reporter) {
-      card_fun <- function(comment, label) {
-        card <- teal::report_card_template(
-          title = "Grade Summary Table",
-          label = label,
-          with_filter = with_filter,
-          filter_panel_api = filter_panel_api
-        )
-        card$append_text("Table", "header3")
-        card$append_table(table_r())
-        if (!comment == "") {
-          card$append_text("Comment", "header3")
-          card$append_text(comment)
-        }
-        card$append_src(source_code_r())
-        card
-      }
-      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
-    }
-    ###
+    decorated_table_q
   })
 }

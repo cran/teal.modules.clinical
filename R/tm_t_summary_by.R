@@ -56,20 +56,34 @@ template_summary_by <- function(parentname,
 
   # Data processing
   data_list <- list()
-
-  data_list <- add_expr(
-    data_list,
-    substitute(
-      expr = anl <- df %>%
-        tern::df_explicit_na(omit_columns = setdiff(names(df), c(by_vars, sum_vars)), na_level = na_str),
-      env = list(
-        df = as.name(dataname),
-        by_vars = by_vars,
-        sum_vars = sum_vars,
-        na_str = na_level
+  if (!na.rm) {
+    data_list <- add_expr(
+      data_list,
+      substitute(
+        expr = anl <- tern::df_explicit_na(df,
+          omit_columns = setdiff(
+            names(df),
+            c(by_vars, sum_vars)
+          ),
+          na_level = na_str
+        ),
+        env = list(
+          df = as.name(dataname),
+          by_vars = by_vars,
+          sum_vars = sum_vars,
+          na_str = na_level
+        )
       )
     )
-  )
+  } else {
+    data_list <- add_expr(
+      data_list,
+      substitute(
+        expr = anl <- df,
+        env = list(df = as.name(dataname))
+      )
+    )
+  }
 
   prepare_arm_levels_call <- lapply(arm_var, function(x) {
     prepare_arm_levels(
@@ -80,19 +94,19 @@ template_summary_by <- function(parentname,
     )
   })
   data_list <- Reduce(add_expr, prepare_arm_levels_call, init = data_list)
-
-  data_list <- add_expr(
-    data_list,
-    substitute(
-      expr = parentname <- tern::df_explicit_na(parentname, na_level = na_str),
-      env = list(parentname = as.name(parentname), na_str = na_level)
+  if (!na.rm) {
+    data_list <- add_expr(
+      data_list,
+      substitute(
+        expr = parentname <- tern::df_explicit_na(parentname, na_level = na_level),
+        env = list(parentname = as.name(parentname), na_level = na_level)
+      )
     )
-  )
+  }
 
   y$data <- bracket_expr(data_list)
 
   # Build layout
-  y$layout_prep <- quote(split_fun <- rtables::drop_split_levels)
   if (row_groups) {
     y$layout_cfun <- quote(
       cfun_unique <- function(x, labelstr = "", .N_col) { # nolint: object_name.
@@ -107,10 +121,25 @@ template_summary_by <- function(parentname,
 
   table_title <- paste("Summary Table for", paste(sum_vars, collapse = ", "), "by", paste(by_vars, collapse = ", "))
 
+  # Only add the footer about NA if needed
+  if (na.rm) {
+    module_table_args <- teal.widgets::basic_table_args(
+      show_colcounts = TRUE,
+      title = table_title,
+      main_footer =
+        sprintf(
+          "N represents the number of unique subject IDs such that the variable has NA (%s) values.",
+          na_level
+        )
+    )
+  } else {
+    module_table_args <- teal.widgets::basic_table_args(show_colcounts = TRUE, title = table_title)
+  }
+
   parsed_basic_table_args <- teal.widgets::parse_basic_table_args(
     teal.widgets::resolve_basic_table_args(
       user_table = basic_table_args,
-      module_table = teal.widgets::basic_table_args(show_colcounts = TRUE, title = table_title)
+      module_table = module_table_args
     )
   )
 
@@ -172,7 +201,7 @@ template_summary_by <- function(parentname,
         rtables::split_rows_by(
           by_var,
           split_label = split_label,
-          split_fun = split_fun,
+          split_fun = rtables::drop_split_levels,
           label_pos = "topleft"
         ),
         env = list(
@@ -344,6 +373,8 @@ template_summary_by <- function(parentname,
 #' To learn more please refer to the vignette
 #' `vignette("transform-module-output", package = "teal")` or the [`teal::teal_transform_module()`] documentation.
 #'
+#' @inheritSection teal::example_module Reporting
+#'
 #' @examplesShinylive
 #' library(teal.modules.clinical)
 #' interactive <- function() TRUE
@@ -502,10 +533,6 @@ ui_summary_by <- function(id, ...) {
   teal.widgets::standard_layout(
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
-      ### Reporter
-      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
-      tags$br(), tags$br(),
-      ###
       tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c("arm_var", "id_var", "paramcd", "by_vars", "summarize_vars")]),
       teal.transform::data_extract_ui(
@@ -603,9 +630,6 @@ ui_summary_by <- function(id, ...) {
         )
       )
     ),
-    forms = tagList(
-      teal.widgets::verbatim_popup_ui(ns("rcode"), button_label = "Show R code")
-    ),
     pre_output = a$pre_output,
     post_output = a$post_output
   )
@@ -614,8 +638,6 @@ ui_summary_by <- function(id, ...) {
 #' @keywords internal
 srv_summary_by <- function(id,
                            data,
-                           reporter,
-                           filter_panel_api,
                            dataname,
                            parentname,
                            arm_var,
@@ -631,8 +653,6 @@ srv_summary_by <- function(id,
                            label,
                            basic_table_args,
                            decorators) {
-  with_reporter <- !missing(reporter) && inherits(reporter, "Reporter")
-  with_filter <- !missing(filter_panel_api) && inherits(filter_panel_api, "FilterPanelAPI")
   checkmate::assert_class(data, "reactive")
   checkmate::assert_class(shiny::isolate(data()), "teal_data")
 
@@ -679,7 +699,13 @@ srv_summary_by <- function(id,
     )
 
     anl_q <- reactive({
-      data() %>%
+      obj <- data()
+      teal.reporter::teal_card(obj) <-
+        c(
+          teal.reporter::teal_card(obj),
+          teal.reporter::teal_card("## Module's output(s)")
+        )
+      obj %>%
         teal.code::eval_code(as.expression(anl_inputs()$expr)) %>%
         teal.code::eval_code(as.expression(adsl_inputs()$expr))
     })
@@ -746,7 +772,9 @@ srv_summary_by <- function(id,
         basic_table_args = basic_table_args
       )
 
-      teal.code::eval_code(merged$anl_q(), as.expression(unlist(my_calls)))
+      obj <- merged$anl_q()
+      teal.reporter::teal_card(obj) <- c(teal.reporter::teal_card(obj), "### Table")
+      teal.code::eval_code(obj, as.expression(unlist(my_calls)))
     })
 
     # Decoration of table output.
@@ -765,34 +793,6 @@ srv_summary_by <- function(id,
       table_r = table_r
     )
 
-    # Render R code.
-    source_code_r <- reactive(teal.code::get_code(req(decorated_table_q())))
-    teal.widgets::verbatim_popup_srv(
-      id = "rcode",
-      verbatim_content = source_code_r,
-      title = label
-    )
-
-    ### REPORTER
-    if (with_reporter) {
-      card_fun <- function(comment, label) {
-        card <- teal::report_card_template(
-          title = "Summarize Variables by Row Groups Table",
-          label = label,
-          with_filter = with_filter,
-          filter_panel_api = filter_panel_api
-        )
-        card$append_text("Table", "header3")
-        card$append_table(table_r())
-        if (!comment == "") {
-          card$append_text("Comment", "header3")
-          card$append_text(comment)
-        }
-        card$append_src(source_code_r())
-        card
-      }
-      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
-    }
-    ###
+    decorated_table_q
   })
 }

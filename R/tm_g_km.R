@@ -43,7 +43,6 @@ template_g_km <- function(dataname = "ANL",
                           rel_height_plot = 0.80,
                           ci_ribbon = FALSE,
                           title = "KM Plot") {
-
   checkmate::assert_string(dataname)
   checkmate::assert_string(arm_var)
   checkmate::assert_string(aval_var)
@@ -248,6 +247,10 @@ template_g_km <- function(dataname = "ANL",
 #' @inheritParams module_arguments
 #' @inheritParams teal::module
 #' @inheritParams template_g_km
+#' @param xticks (`numeric` or `NULL`)\cr numeric vector of tick positions or a single number with spacing
+#'   for the x-axis. If `NULL` (default), users can specify this interactively in the module.
+#'   If provided, the interactive input field is pre-populated with the specified values as a default.
+#'   Users can then modify these values interactively, and their changes will take precedence over the default.
 #' @param facet_var ([teal.transform::choices_selected()])\cr object with
 #'   all available choices and preselected option for names of variable that can be used for plot faceting.
 #'
@@ -277,6 +280,7 @@ template_g_km <- function(dataname = "ANL",
 #' To learn more please refer to the vignette
 #' `vignette("transform-module-output", package = "teal")` or the [`teal::teal_transform_module()`] documentation.
 #'
+#' @inheritSection teal::example_module Reporting
 #'
 #' @examplesShinylive
 #' library(teal.modules.clinical)
@@ -288,6 +292,8 @@ template_g_km <- function(dataname = "ANL",
 #'
 #' data <- teal_data()
 #' data <- within(data, {
+#'   library(dplyr)
+#'   library(teal.modules.clinical)
 #'   ADSL <- tmc_ex_adsl
 #'   ADTTE <- tmc_ex_adtte
 #' })
@@ -329,7 +335,8 @@ template_g_km <- function(dataname = "ANL",
 #'       facet_var = choices_selected(
 #'         variable_choices(ADSL, c("SEX", "BMRKR2")),
 #'         NULL
-#'       )
+#'       ),
+#'       xticks = c(0, 30, 60, 90, 120, 150, 180)
 #'     )
 #'   )
 #' )
@@ -365,6 +372,7 @@ tm_g_km <- function(label,
                     conf_level = teal.transform::choices_selected(c(0.95, 0.9, 0.8), 0.95, keep_order = TRUE),
                     conf_type = teal.transform::choices_selected(c("plain", "log", "log-log"), "plain", TRUE),
                     font_size = c(11L, 1L, 30),
+                    xticks = NULL,
                     control_annot_surv_med = tern::control_surv_med_annot(),
                     control_annot_coxph = tern::control_coxph_annot(x = 0.27, y = 0.35, w = 0.3),
                     legend_pos = c(0.9, 0.5),
@@ -389,6 +397,7 @@ tm_g_km <- function(label,
   checkmate::assert_class(cnsr_var, "choices_selected")
   checkmate::assert_class(conf_level, "choices_selected")
   checkmate::assert_class(conf_type, "choices_selected")
+  checkmate::assert_numeric(xticks, null.ok = TRUE)
   checkmate::assert_numeric(plot_height, len = 3, any.missing = FALSE, finite = TRUE)
   checkmate::assert_numeric(plot_height[1], lower = plot_height[2], upper = plot_height[3], .var.name = "plot_height")
   checkmate::assert_numeric(plot_width, len = 3, any.missing = FALSE, null.ok = TRUE, finite = TRUE)
@@ -425,6 +434,7 @@ tm_g_km <- function(label,
         arm_ref_comp = arm_ref_comp,
         plot_height = plot_height,
         plot_width = plot_width,
+        xticks = xticks,
         control_annot_surv_med = control_annot_surv_med,
         control_annot_coxph = control_annot_coxph,
         legend_pos = legend_pos,
@@ -459,10 +469,6 @@ ui_g_km <- function(id, ...) {
       )
     ),
     encoding = tags$div(
-      ### Reporter
-      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
-      tags$br(), tags$br(),
-      ###
       tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c("arm_var", "paramcd", "strata_var", "facet_var", "aval_var", "cnsr_var")]),
       teal.transform::data_extract_ui(
@@ -568,7 +574,10 @@ ui_g_km <- function(id, ...) {
           title = "Additional plot settings",
           textInput(
             inputId = ns("xticks"),
-            label = "Specify break intervals for x-axis e.g. 0 ; 500"
+            label = "Specify break intervals for x-axis e.g. 0 ; 500",
+            value = if (!is.null(a$xticks)) {
+              paste(a$xticks, collapse = " ; ")
+            }
           ),
           radioButtons(
             ns("yval"),
@@ -632,9 +641,6 @@ ui_g_km <- function(id, ...) {
         )
       )
     ),
-    forms = tagList(
-      teal.widgets::verbatim_popup_ui(ns("rcode"), button_label = "Show R code")
-    ),
     pre_output = a$pre_output,
     post_output = a$post_output
   )
@@ -643,8 +649,6 @@ ui_g_km <- function(id, ...) {
 #' @keywords internal
 srv_g_km <- function(id,
                      data,
-                     reporter,
-                     filter_panel_api,
                      dataname,
                      parentname,
                      paramcd,
@@ -658,12 +662,11 @@ srv_g_km <- function(id,
                      time_unit_var,
                      plot_height,
                      plot_width,
+                     xticks,
                      control_annot_surv_med,
                      control_annot_coxph,
                      legend_pos,
                      decorators) {
-  with_reporter <- !missing(reporter) && inherits(reporter, "Reporter")
-  with_filter <- !missing(filter_panel_api) && inherits(filter_panel_api, "FilterPanelAPI")
   checkmate::assert_class(data, "reactive")
   checkmate::assert_class(isolate(data()), "teal_data")
 
@@ -752,8 +755,13 @@ srv_g_km <- function(id,
     )
 
     anl_q <- reactive({
-      data() %>%
-        teal.code::eval_code(code = as.expression(anl_inputs()$expr))
+      obj <- data()
+      teal.reporter::teal_card(obj) <-
+        c(
+          teal.reporter::teal_card(obj),
+          teal.reporter::teal_card("## Module's output(s)")
+        )
+      obj %>% teal.code::eval_code(code = as.expression(anl_inputs()$expr))
     })
 
     validate_checks <- reactive({
@@ -841,7 +849,9 @@ srv_g_km <- function(id,
         ci_ribbon = input$show_ci_ribbon,
         title = title
       )
-      teal.code::eval_code(anl_q(), as.expression(unlist(my_calls)))
+      obj <- anl_q()
+      teal.reporter::teal_card(obj) <- c(teal.reporter::teal_card(obj), "### Plot")
+      teal.code::eval_code(obj, as.expression(unlist(my_calls)))
     })
 
     decorated_all_q <- srv_decorate_teal_data(
@@ -860,35 +870,6 @@ srv_g_km <- function(id,
       width = plot_width
     )
 
-    # Render R code
-    source_code_r <- reactive(teal.code::get_code(req(decorated_all_q())))
-    teal.widgets::verbatim_popup_srv(
-      id = "rcode",
-      verbatim_content = source_code_r,
-      title = label
-    )
-
-    ### REPORTER
-    if (with_reporter) {
-      card_fun <- function(comment, label) {
-        card <- teal::report_card_template(
-          title = "Kaplan Meier Plot",
-          label = label,
-          description = "Non-parametric method used to estimate the survival function from lifetime data",
-          with_filter = with_filter,
-          filter_panel_api = filter_panel_api
-        )
-        card$append_text("Plot", "header3")
-        card$append_plot(plot_r(), dim = pws$dim())
-        if (!comment == "") {
-          card$append_text("Comment", "header3")
-          card$append_text(comment)
-        }
-        card$append_src(source_code_r())
-        card
-      }
-      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
-    }
-    ###
+    set_chunk_dims(pws, decorated_all_q)
   })
 }

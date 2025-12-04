@@ -381,16 +381,19 @@ template_binary_outcome <- function(dataname,
 #' To learn more please refer to the vignette
 #' `vignette("transform-module-output", package = "teal")` or the [`teal::teal_transform_module()`] documentation.
 #'
+#' @inheritSection teal::example_module Reporting
+#'
 #' @examplesShinylive
 #' library(teal.modules.clinical)
 #' interactive <- function() TRUE
 #' {{ next_example }}
 #'
 #' @examples
-#' library(dplyr)
 #'
 #' data <- teal_data()
 #' data <- within(data, {
+#'   library(dplyr)
+#'   library(formatters)
 #'   ADSL <- tmc_ex_adsl
 #'   ADRS <- tmc_ex_adrs %>%
 #'     mutate(
@@ -592,10 +595,6 @@ ui_t_binary_outcome <- function(id, ...) {
   teal.widgets::standard_layout(
     output = teal.widgets::white_small_well(teal.widgets::table_with_settings_ui(ns("table"))),
     encoding = tags$div(
-      ### Reporter
-      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
-      tags$br(), tags$br(),
-      ###
       tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(a[c("paramcd", "arm_var", "aval_var", "strata_var")]),
       teal.transform::data_extract_ui(
@@ -722,48 +721,47 @@ ui_t_binary_outcome <- function(id, ...) {
         checkboxInput(ns("add_total"), "Add All Patients column", value = a$add_total)
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(a$decorators, "table")),
-      bslib::accordion_panel(
-        "Additional table settings",
+      bslib::accordion(
         open = TRUE,
-        teal.widgets::optionalSelectInput(
-          inputId = ns("prop_ci_method"),
-          label = "Method for Proportion CI",
-          choices = c(
-            "Wald, without correction" = "wald",
-            "Wald, with correction" = "waldcc",
-            "Clopper-Pearson" = "clopper-pearson",
-            "Wilson" = "wilson",
-            "Wilson, with correction" = "wilsonc",
-            "Jeffreys" = "jeffreys",
-            "Agresti-Coull" = "agresti-coull"
+        bslib::accordion_panel(
+          "Additional table settings",
+          teal.widgets::optionalSelectInput(
+            inputId = ns("prop_ci_method"),
+            label = "Method for Proportion CI",
+            choices = c(
+              "Wald, without correction" = "wald",
+              "Wald, with correction" = "waldcc",
+              "Clopper-Pearson" = "clopper-pearson",
+              "Wilson" = "wilson",
+              "Wilson, with correction" = "wilsonc",
+              "Jeffreys" = "jeffreys",
+              "Agresti-Coull" = "agresti-coull"
+            ),
+            selected = a$control$global$method,
+            multiple = FALSE,
+            fixed = FALSE
           ),
-          selected = a$control$global$method,
-          multiple = FALSE,
-          fixed = FALSE
+          teal.widgets::optionalSelectInput(
+            inputId = ns("conf_level"),
+            label = "Confidence Level",
+            a$conf_level$choices,
+            a$conf_level$selected,
+            multiple = FALSE,
+            fixed = a$conf_level$fixed
+          ),
+          bslib::input_switch(
+            id = ns("show_rsp_cat"),
+            label = "Show All Response Categories",
+            value = ifelse(a$rsp_table, TRUE, FALSE)
+          )
         ),
-        teal.widgets::optionalSelectInput(
-          inputId = ns("conf_level"),
-          label = "Confidence Level",
-          a$conf_level$choices,
-          a$conf_level$selected,
-          multiple = FALSE,
-          fixed = a$conf_level$fixed
-        ),
-        bslib::input_switch(
-          id = ns("show_rsp_cat"),
-          label = "Show All Response Categories",
-          value = ifelse(a$rsp_table, TRUE, FALSE)
+        teal.transform::data_extract_ui(
+          id = ns("aval_var"),
+          label = "Analysis Variable",
+          data_extract_spec = a$aval_var,
+          is_single_dataset = is_single_dataset_value
         )
-      ),
-      teal.transform::data_extract_ui(
-        id = ns("aval_var"),
-        label = "Analysis Variable",
-        data_extract_spec = a$aval_var,
-        is_single_dataset = is_single_dataset_value
       )
-    ),
-    forms = tagList(
-      teal.widgets::verbatim_popup_ui(ns("rcode"), button_label = "Show R code")
     ),
     pre_output = a$pre_output,
     post_output = a$post_output
@@ -773,8 +771,6 @@ ui_t_binary_outcome <- function(id, ...) {
 #' @keywords internal
 srv_t_binary_outcome <- function(id,
                                  data,
-                                 reporter,
-                                 filter_panel_api,
                                  dataname,
                                  parentname,
                                  paramcd,
@@ -792,8 +788,6 @@ srv_t_binary_outcome <- function(id,
                                  denom,
                                  basic_table_args,
                                  decorators) {
-  with_reporter <- !missing(reporter) && inherits(reporter, "Reporter")
-  with_filter <- !missing(filter_panel_api) && inherits(filter_panel_api, "FilterPanelAPI")
   checkmate::assert_class(data, "reactive")
   checkmate::assert_class(shiny::isolate(data()), "teal_data")
 
@@ -851,7 +845,13 @@ srv_t_binary_outcome <- function(id,
     )
 
     anl_q <- reactive({
-      data() %>%
+      obj <- data()
+      teal.reporter::teal_card(obj) <-
+        c(
+          teal.reporter::teal_card(obj),
+          teal.reporter::teal_card("## Module's output(s)")
+        )
+      obj %>%
         teal.code::eval_code(as.expression(anl_inputs()$expr)) %>%
         teal.code::eval_code(as.expression(adsl_inputs()$expr))
     })
@@ -1039,7 +1039,9 @@ srv_t_binary_outcome <- function(id,
         basic_table_args = basic_table_args
       )
 
-      teal.code::eval_code(qenv, as.expression(unlist(my_calls)))
+      obj <- anl_q()
+      teal.reporter::teal_card(obj) <- c(teal.reporter::teal_card(obj), "### Table")
+      teal.code::eval_code(obj, as.expression(unlist(my_calls)))
     })
 
 
@@ -1058,34 +1060,6 @@ srv_t_binary_outcome <- function(id,
       table_r = table_r
     )
 
-    # Render R code.
-    source_code_r <- reactive(teal.code::get_code(req(decorated_all_q())))
-    teal.widgets::verbatim_popup_srv(
-      id = "rcode",
-      verbatim_content = source_code_r,
-      title = label
-    )
-
-    ### REPORTER
-    if (with_reporter) {
-      card_fun <- function(comment, label) {
-        card <- teal::report_card_template(
-          title = "Binary Outcome Table",
-          label = label,
-          with_filter = with_filter,
-          filter_panel_api = filter_panel_api
-        )
-        card$append_text("Table", "header3")
-        card$append_table(table_r())
-        if (!comment == "") {
-          card$append_text("Comment", "header3")
-          card$append_text(comment)
-        }
-        card$append_src(source_code_r())
-        card
-      }
-      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
-    }
-    ###
+    decorated_all_q
   })
 }
