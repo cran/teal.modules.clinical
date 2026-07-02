@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2025-12-03" />
+<meta name="date" content="2026-07-02" />
 
 <title>Example Data Generation</title>
 
@@ -1579,7 +1579,7 @@ border-radius: 0px;
 
 
 <h1 class="title toc-ignore">Example Data Generation</h1>
-<h4 class="date">2025-12-03</h4>
+<h4 class="date">2026-07-02</h4>
 
 </div>
 
@@ -1627,21 +1627,21 @@ tracking.</p>
 <span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a>rel_var <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">df =</span> <span class="cn">NULL</span>, <span class="at">var_name =</span> <span class="cn">NULL</span>, <span class="at">var_values =</span> <span class="cn">NULL</span>, <span class="at">related_var =</span> <span class="cn">NULL</span>) {</span>
 <span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(df)) {</span>
 <span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">&quot;Missing data frame argument value.&quot;</span>)</span>
-<span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a>    <span class="fu">return</span>(<span class="cn">NA</span>)</span>
+<span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a>    <span class="cn">NA</span></span>
 <span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
 <span id="cb1-32"><a href="#cb1-32" tabindex="-1"></a>    n_relvar1 <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(df[, related_var, <span class="at">drop =</span> <span class="cn">TRUE</span>]))</span>
 <span id="cb1-33"><a href="#cb1-33" tabindex="-1"></a>    n_relvar2 <span class="ot">&lt;-</span> <span class="fu">length</span>(var_values)</span>
 <span id="cb1-34"><a href="#cb1-34" tabindex="-1"></a>    <span class="cf">if</span> (n_relvar1 <span class="sc">!=</span> n_relvar2) {</span>
 <span id="cb1-35"><a href="#cb1-35" tabindex="-1"></a>      <span class="fu">message</span>(<span class="fu">paste</span>(<span class="st">&quot;Unequal vector lengths for&quot;</span>, related_var, <span class="st">&quot;and&quot;</span>, var_name))</span>
-<span id="cb1-36"><a href="#cb1-36" tabindex="-1"></a>      <span class="fu">return</span>(<span class="cn">NA</span>)</span>
+<span id="cb1-36"><a href="#cb1-36" tabindex="-1"></a>      <span class="cn">NA</span></span>
 <span id="cb1-37"><a href="#cb1-37" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
 <span id="cb1-38"><a href="#cb1-38" tabindex="-1"></a>      relvar1 <span class="ot">&lt;-</span> <span class="fu">unique</span>(df[, related_var, <span class="at">drop =</span> <span class="cn">TRUE</span>])</span>
 <span id="cb1-39"><a href="#cb1-39" tabindex="-1"></a>      relvar2_values <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="cn">NA</span>, <span class="fu">nrow</span>(df))</span>
-<span id="cb1-40"><a href="#cb1-40" tabindex="-1"></a>      <span class="cf">for</span> (r <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">length</span>(relvar1))) {</span>
+<span id="cb1-40"><a href="#cb1-40" tabindex="-1"></a>      <span class="cf">for</span> (r <span class="cf">in</span> <span class="fu">seq_along</span>(relvar1)) {</span>
 <span id="cb1-41"><a href="#cb1-41" tabindex="-1"></a>        matched <span class="ot">&lt;-</span> <span class="fu">which</span>(df[, related_var, <span class="at">drop =</span> <span class="cn">TRUE</span>] <span class="sc">==</span> relvar1[r])</span>
 <span id="cb1-42"><a href="#cb1-42" tabindex="-1"></a>        relvar2_values[matched] <span class="ot">&lt;-</span> var_values[r]</span>
 <span id="cb1-43"><a href="#cb1-43" tabindex="-1"></a>      }</span>
-<span id="cb1-44"><a href="#cb1-44" tabindex="-1"></a>      <span class="fu">return</span>(relvar2_values)</span>
+<span id="cb1-44"><a href="#cb1-44" tabindex="-1"></a>      relvar2_values</span>
 <span id="cb1-45"><a href="#cb1-45" tabindex="-1"></a>    }</span>
 <span id="cb1-46"><a href="#cb1-46" tabindex="-1"></a>  }</span>
 <span id="cb1-47"><a href="#cb1-47" tabindex="-1"></a>}</span>
