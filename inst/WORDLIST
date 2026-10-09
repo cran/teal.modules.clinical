@@ -3,7 +3,6 @@ AE
 ANCOVA
 ElementaryTable
 Facetting
-Forkers
 GDSR
 Getter
 Hoffmann
@@ -19,8 +18,12 @@ TLG
 TableTree
 UI
 Univariable
+aval
+avalu
+biomarker
 datatables
 de
+draggable
 emmeans
 funder
 ggplot
@@ -31,5 +34,6 @@ preselected
 reportable
 responder
 responders
+tidyselect
 univariable
 unstratified

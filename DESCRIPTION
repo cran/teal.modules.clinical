@@ -1,7 +1,7 @@
 Package: teal.modules.clinical
 Title: 'teal' Modules for Standard Clinical Outputs
-Version: 0.13.0
-Date: 2026-06-29
+Version: 0.14.0
+Date: 2026-10-07
 Authors@R: c(
     person("Dony", "Unardi", , "unardid@gene.com", role = c("aut", "cre")),
     person("Joe", "Zhu", , "joe.zhu@roche.com", role = "aut",
@@ -31,8 +31,8 @@ License: Apache License 2.0
 URL: https://insightsengineering.github.io/teal.modules.clinical/,
         https://github.com/insightsengineering/teal.modules.clinical/
 BugReports: https://github.com/insightsengineering/teal.modules.clinical/issues
-Depends: R (>= 4.4), teal (>= 1.2.0), teal.transform (>= 0.7.2), tern
-        (>= 0.9.9)
+Depends: R (>= 4.4), teal (>= 1.2.0), teal.picks (>= 0.1.0),
+        teal.transform (>= 0.7.2), tern (>= 0.9.9)
 Imports: broom (>= 0.7.10), bslib (>= 0.8.0), checkmate (>= 2.1.0),
         cowplot (>= 0.7.0), dplyr (>= 1.0.5), DT (>= 0.13), formatters
         (>= 0.5.11), ggplot2 (>= 3.4.0), ggrepel (>= 0.9.6), grid,
@@ -42,7 +42,7 @@ Imports: broom (>= 0.7.10), bslib (>= 0.8.0), checkmate (>= 2.1.0),
         shinyWidgets (>= 0.5.1), stats, teal.code (>= 0.7.0), teal.data
         (>= 0.8.0), teal.logger (>= 0.4.0), teal.reporter (>= 0.6.0),
         teal.widgets (>= 0.5.0), tern.gee (>= 0.1.5), tern.mmrm (>=
-        0.3.3), utils, vistime (>= 1.2.3)
+        0.3.4), tidyselect (>= 1.2.0), utils, vistime (>= 1.2.3)
 Suggests: forcats (>= 1.0.0), knitr (>= 1.42), logger (>= 0.4.0),
         lubridate (>= 1.7.9), nestcolor (>= 0.1.0), pkgload (>= 1.4.0),
         roxy.shinylive (>= 1.0.0), rvest (>= 1.0.4), shinytest2 (>=
@@ -66,15 +66,16 @@ Config/Needs/verdepcheck: insightsengineering/teal,
         tidyverse/forcats, yihui/knitr, tidyverse/lubridate,
         insightsengineering/nestcolor, r-lib/pkgload,
         insightsengineering/roxy.shinylive, tidyverse/rvest,
-        rstudio/shinytest2, r-lib/styler, r-lib/testthat, r-lib/withr
+        rstudio/shinytest2, r-lib/styler, r-lib/testthat,
+        r-lib/tidyselect, r-lib/withr
 Config/Needs/website: insightsengineering/nesttemplate
+Config/roxygen2/version: 8.1.1
 Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
 LazyData: true
-Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-07-02 13:21:54 UTC; averissimo
+Packaged: 2026-10-09 19:47:47 UTC; wangb133
 Author: Dony Unardi [aut, cre],
   Joe Zhu [aut] (ORCID: <https://orcid.org/0000-0001-7566-2787>),
   Jana Stoilova [aut],
@@ -94,4 +95,4 @@ Author: Dony Unardi [aut, cre],
   F. Hoffmann-La Roche AG [cph, fnd]
 Maintainer: Dony Unardi <unardid@gene.com>
 Repository: CRAN
-Date/Publication: 2026-07-02 23:20:02 UTC
+Date/Publication: 2026-10-09 20:50:02 UTC

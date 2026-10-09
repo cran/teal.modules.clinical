@@ -17,15 +17,12 @@
 #   modules = list(
 #     tm_g_barchart_simple(
 #       label = "ADAE Analysis",
-#       x = data_extract_spec(
-#         dataname = "ADAE",
-#         select = select_spec(
-#           choices = variable_choices(
-#             ADAE,
-#             c(
-#               "ARM", "ACTARM", "SEX",
-#               "RACE", "SAFFL", "STRATA2"
-#             )
+#       x = picks(
+#         datasets("ADAE"),
+#         variables(
+#           choices = c(
+#             "ARM", "ACTARM", "SEX",
+#             "RACE", "SAFFL", "STRATA2"
 #           ),
 #           selected = "ACTARM",
 #           multiple = FALSE
